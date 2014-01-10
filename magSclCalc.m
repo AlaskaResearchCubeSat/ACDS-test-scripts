@@ -1,4 +1,4 @@
-function [cor]=magSclCalc(mag_axis,com,baud,gain,ADCgain,a)
+function [cor,erms]=magSclCalc(mag_axis,com,baud,gain,ADCgain,a)
     %calculate magnetometer scaling and correction factors using the
     %Helmholtz cage
     if(~exist('mag_axis','var') || isempty(mag_axis))
@@ -75,10 +75,10 @@ function [cor]=magSclCalc(mag_axis,com,baud,gain,ADCgain,a)
         gs=fgetl(ser);
         if(ADCgain~=sscanf(gs,'ADC gain = %i'))
             fprintf(gs);
-            error('magcal','Failed to set ADC gain to %i',ADCgain);
+            error('Failed to set ADC gain to %i',ADCgain);
         end
         if ~waitReady(ser,10)
-            error('magcal','Could not communicate with prototype. Check connections');
+            error('Could not communicate with prototype. Check connections');
         end
         
         magScale=1/(2*65535*1e-3*gain*ADCgain);
@@ -147,6 +147,8 @@ function [cor]=magSclCalc(mag_axis,com,baud,gain,ADCgain,a)
         As=(A'*A)^-1*A';
         cor(1:3)=As*(Bs(1,:)');
         cor(4:6)=As*(Bs(2,:)');
+        %calculate error
+        erms=sqrt(sum(mean([Bs(1,:)'-A*(cor(1:3)'),Bs(2,:)'-A*(cor(4:6)')].^2)));
         %calculate corrected values
         Xc=[meas(1:2,:)',ones(len,1)]*(cor(1:3)');
         Yc=[meas(1:2,:)',ones(len,1)]*(cor(4:6)');
