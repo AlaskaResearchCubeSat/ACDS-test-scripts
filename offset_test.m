@@ -70,6 +70,9 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
         %get start time to calculate elapsed time
         Tstart=tic();
         
+        %acceptable error level
+        good_err=0.008;
+        
         for k=1:num
             
             fprintf('Running Test %i of %i\n',k,num);
@@ -90,7 +93,12 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
             waitReady(ser,5);
             
             %run a calibration
-            p(k,:)=magSclCalc(mag_axis,ser,baud,gain,ADCgain,a);
+            [p(k,:),erms]=magSclCalc(mag_axis,ser,baud,gain,ADCgain,a);
+            
+            %check error for problems
+            if(erms>good_err)
+                error('Large calibration error of %f. aborting.',erms);
+            end 
             
             %connect to ACDS board
             asyncOpen(ser,'ACDS');
@@ -106,6 +114,11 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
             
             %run a calibration
             [m(k,:),erms]=magSclCalc(mag_axis,ser,baud,gain,ADCgain,a);
+            
+            %check error for problems
+            if(erms>good_err)
+                error('Large calibration error of %f. aborting.',erms);
+            end
             
             %===[estimate completeion time]===
             %calculate done fraction
