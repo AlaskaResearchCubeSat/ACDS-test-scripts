@@ -105,7 +105,7 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
             waitReady(ser,5);
             
             %run a calibration
-            m(k,:)=magSclCalc(mag_axis,ser,baud,gain,ADCgain);
+            [m(k,:),erms]=magSclCalc(mag_axis,ser,baud,gain,ADCgain,a);
             
             %===[estimate completeion time]===
             %calculate done fraction
