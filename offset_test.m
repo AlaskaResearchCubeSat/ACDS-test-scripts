@@ -71,7 +71,11 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
         Tstart=tic();
         
         %acceptable error level
-        good_err=0.008;
+        good_err=0.005;
+        %maximum number of retries
+        max_retry=5;
+        %current number of retries
+        retry=0;
         
         for k=1:num
             
@@ -92,13 +96,31 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
             %wait for completion
             waitReady(ser,5);
             
-            %run a calibration
-            [p(k,:),erms]=magSclCalc(mag_axis,ser,baud,gain,ADCgain,a);
-            
-            %check error for problems
-            if(erms>good_err)
-                error('Large calibration error of %f. aborting.',erms);
-            end 
+            %force entry into the loop
+            erms=Inf;
+            %re run the test until the error is low but don't allow too
+            %many failed tests
+            while(erms>good_err)
+                %run a calibration
+                [p(k,:),erms]=magSclCalc(mag_axis,ser,baud,gain,ADCgain,a);
+
+                %check error for problems
+                if(erms>good_err)
+                    retry
+                    %check if maximum number of retries has been exceded
+                    if(retry>max_retry)
+                        %Throw an error, aborting the test
+                        error('Large calibration error of %f. Number of retries exceded aborting.',erms);
+                    else
+                        %give a warning with the test error
+                        warning('Large calibration error of %f. Redoing measurment.',erms);
+                        %Beep to notify the user TODO: is this needed/usefull?
+                        beep;
+                    end
+                    %increment number of retries
+                    retry=retry+1;
+                end
+            end
             
             %connect to ACDS board
             asyncOpen(ser,'ACDS');
@@ -112,12 +134,30 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
             %wait for completion
             waitReady(ser,5);
             
-            %run a calibration
-            [m(k,:),erms]=magSclCalc(mag_axis,ser,baud,gain,ADCgain,a);
-            
-            %check error for problems
-            if(erms>good_err)
-                error('Large calibration error of %f. aborting.',erms);
+            %force entry into the loop
+            erms=Inf;
+            %re run the test until the error is low but don't allow too
+            %many failed tests
+            while(erms>good_err)
+                %run a calibration
+                [m(k,:),erms]=magSclCalc(mag_axis,ser,baud,gain,ADCgain,a);
+
+                %check error for problems
+                if(erms>good_err)
+                    retry
+                    %check if maximum number of retries has been exceded
+                    if(retry>max_retry)
+                        %Throw an error, aborting the test
+                        error('Large calibration error of %f. Number of retries exceded aborting.',erms);
+                    else
+                        %give a warning with the test error
+                        warning('Large calibration error of %f. Redoing measurment.',erms);
+                         %Beep to notify the user TODO: is this needed/usefull?
+                        beep;
+                    end
+                    %increment number of retries
+                    retry=retry+1;
+                end
             end
             
             %===[estimate completeion time]===
