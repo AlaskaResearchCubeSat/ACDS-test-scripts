@@ -204,20 +204,20 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
             %connect to ACDS board
             asyncOpen(ser,'ACDS');
             pause(1);  
-         
+            
+            %get torquer status
+            fprintf(ser,'statcode');
+            %get echoed line
+            fgetl(ser);
+            %get status line
+            stline=fgetl(ser); 
+            %strip out status
+            states{kk}=stat_strip(stline);
+            
             %flip torquers
             fprintf(ser,'flip %c%i %c%i %c%i\n',table(kk,:));
             %read echoed line
             fgetl(ser);
-            %get status line
-            stline=fgetl(ser);
-            %strip out status
-            %sts=sscanf(stline,'B\t%s %s %s %*i %*i %*i',[3,4]);
-            stsx=sscanf(stline,'B\t%[+-] %*[+-] %*[+-] %*i %*i %*i');
-            stsy=sscanf(stline,'B\t%*[+-] %[+-] %*[+-] %*i %*i %*i');
-            stsz=sscanf(stline,'B\t%*[+-] %*[+-] %[+-] %*i %*i %*i');
-            %reformat status
-            states{kk}=sprintf('%s  %s  %s',stsx,stsy,stsz);
             %wait for completion
             waitReady(ser,5);
             %print ^C to exit async connection
@@ -302,6 +302,14 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
     
     
     
+end
+
+function [stat]=stat_strip(line)
+    stsx=sscanf(line,'B\t%[+-] %*[+-] %*[+-] %*i %*i %*i');
+    stsy=sscanf(line,'B\t%*[+-] %[+-] %*[+-] %*i %*i %*i');
+    stsz=sscanf(line,'B\t%*[+-] %*[+-] %[+-] %*i %*i %*i');
+    %reformat status
+    stat=sprintf('%s  %s  %s',stsx,stsy,stsz);
 end
 
 function asyncOpen(sobj,sys)
