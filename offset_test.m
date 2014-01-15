@@ -22,6 +22,8 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
     if (~exist('a','var'))
         a=[];
     end
+    %current number of retries
+    retry=0;
     try
         %open serial port
         ser=serial(com,'BaudRate',baud);
@@ -71,11 +73,9 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
         Tstart=tic();
         
         %acceptable error level
-        good_err=0.005;
+        good_err=0.003;
         %maximum number of retries
         max_retry=5;
-        %current number of retries
-        retry=0;
         
         for k=1:num
             
@@ -106,7 +106,6 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
 
                 %check error for problems
                 if(erms>good_err)
-                    retry
                     %check if maximum number of retries has been exceded
                     if(retry>max_retry)
                         %Throw an error, aborting the test
@@ -144,7 +143,6 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
 
                 %check error for problems
                 if(erms>good_err)
-                    retry
                     %check if maximum number of retries has been exceded
                     if(retry>max_retry)
                         %Throw an error, aborting the test
@@ -239,6 +237,7 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
             end
             delete(ser);
         end
+        fprintf('Total Number of retries %i\n',retry);
         rethrow(err);
     end
     if exist('cc','var')
@@ -254,6 +253,7 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
         end
         delete(ser);
     end
+    fprintf('Total Number of retries %i\n',retry);
 end
 
 function asyncOpen(sobj,sys)
