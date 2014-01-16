@@ -237,7 +237,7 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
             end
             delete(ser);
         end
-        fprintf('Total Number of retries %i\n',retry);
+        fprintf('Total Number of retries %i\n',retry+1);
         rethrow(err);
     end
     if exist('cc','var')
@@ -253,7 +253,7 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
         end
         delete(ser);
     end
-    fprintf('Total Number of retries %i\n',retry);
+    fprintf('Total Number of retries %i\n',retry+1);
 end
 
 function asyncOpen(sobj,sys)
