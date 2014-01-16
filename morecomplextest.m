@@ -21,101 +21,10 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
 
     gain={[1,64],[-95.3,1],[1,64],[1,64]};
     
-    p='+';
-    m='-';
-    z='0';
-    table=[                     %+- +- +- 
-           p 2 z 0 z 0;         %++ +- +-
-           m 1 z 0 z 0;         %-+ +- +-
-           m 2 z 0 z 0;         %-- +- +-
-           p 1 p 2 z 0;         %+- ++ +-
-
-           p 2 z 0 z 0;         %++ ++ +-
-           m 1 z 0 z 0;         %-+ ++ +-
-           m 2 z 0 z 0;         %-- ++ +-
-           p 1 m 1 z 0;         %+- -+ +-
-
-           p 2 z 0 z 0;         %++ -+ +-
-           m 1 z 0 z 0;         %-+ -+ +-
-           m 2 z 0 z 0;         %-- -+ +-
-           p 1 m 2 z 0;         %+- -- +-
-
-           p 2 z 0 z 0;         %++ -- +-
-           m 1 z 0 z 0;         %-+ -- +-
-           m 2 z 0 z 0;         %-- -- +-
-           p 1 p 1 p 2;         %+- +- ++
-
-
-           p 2 z 0 z 0;         %++ +- ++
-           m 1 z 0 z 0;         %-+ +- ++
-           m 2 z 0 z 0;         %-- +- ++
-           p 1 p 2 z 0;         %+- ++ ++
-
-           p 2 z 0 z 0;         %++ ++ ++
-           m 1 z 0 z 0;         %-+ +- ++
-           m 2 z 0 z 0;         %-- +- ++
-           p 1 m 1 z 0;         %+- -+ ++
-
-           p 2 z 0 z 0;         %++ -+ ++
-           m 1 z 0 z 0;         %-+ -+ ++
-           m 2 z 0 z 0;         %-- -+ ++
-           p 1 m 2 z 0;         %+- -- ++
-
-           p 2 z 0 z 0;         %++ -- ++ 
-           m 1 z 0 z 0;         %-+ -- ++
-           m 2 z 0 z 0;         %-- -- ++
-           p 1 p 1 m 1;         %+- +- -+
-
-
-           p 2 z 0 z 0;         %++ +- -+
-           m 1 z 0 z 0;         %-+ +- -+
-           m 2 z 0 z 0;         %-- +- -+
-           p 1 p 2 z 0;         %+- ++ -+
-
-           p 2 z 0 z 0;         %++ ++ -+
-           m 1 z 0 z 0;         %-+ ++ -+
-           m 2 z 0 z 0;         %-- ++ -+
-           p 1 m 1 z 0;         %+- -+ -+
-
-           p 2 z 0 z 0;         %++ -+ -+
-           m 1 z 0 z 0;         %-+ -+ -+
-           m 2 z 0 z 0;         %-- -+ -+
-           p 1 m 2 z 0;         %+- -- -+
-
-           p 2 z 0 z 0;         %++ -- -+
-           m 1 z 0 z 0;         %-+ -- -+
-           m 2 z 0 z 0;         %-- -- -+
-           p 1 p 1 m 2;         %+- +- --
-
-
-           p 2 z 0 z 0;         %++ +- --
-           m 1 z 0 z 0;         %-+ +- --
-           m 2 z 0 z 0;         %-- +- --
-           p 1 p 2 z 0;         %+- ++ --
-
-           p 2 z 0 z 0;         %++ ++ --
-           m 1 z 0 z 0;         %-+ ++ --
-           m 2 z 0 z 0;         %-- ++ --
-           p 1 m 1 z 0;         %+- -+ --
-
-           p 2 z 0 z 0;         %++ -+ --
-           m 1 z 0 z 0;         %-+ -+ --
-           m 2 z 0 z 0;         %-- -+ --
-           p 1 m 2 z 0;         %+- -- --
-
-           p 2 z 0 z 0;         %++ -- --
-           m 1 z 0 z 0;         %-+ -- --
-           m 2 z 0 z 0;         %-- -- --
-           p 1 p 1 p 1;         %+- +- +-
-
-           ];
-
-    %TODO: pull from ACDS
     states=cell(1,length(table));
 
     cor=zeros(length(board_names),6);
-
-
+    
     xdat=zeros(length(board_names),length(table));
     ydat=zeros(length(board_names),length(table));
     zdat=zeros(length(board_names),length(table));
@@ -165,6 +74,65 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
         
         if ~waitReady(ser,30)
             error('Error : Could not communicate with prototype. Check connections');
+        end
+        %get torquer status
+        fprintf(ser,'statcode');
+        %get echoed line
+        fgetl(ser);
+        %get status line
+        stline=fgetl(ser); 
+        %strip out status
+        stdat=stat_dat(stline);
+        stlen=stat_length(stline);
+        
+        initial=stdat;
+        
+        tmp=(initial-'+')/2+'0';
+        tmp=tmp(:,end:-1:1);
+        tmp=char(reshape(tmp',1,[]));
+        
+        %generate status table from graycode values
+        stable=graycode(3*stlen);
+        %find starting index
+        k=find(all(char(ones(length(stable),1)*tmp)==stable,2));
+        %rotate table so that k is first
+        stable=stable(mod((k:(k+length(stable)))-1,length(stable))+1,:);
+        
+        table=zeros(length(table),6);
+        
+        for k=1:length(table)
+            if(k==length(table))
+                %wrap around so we end up back where we started
+                flip=stable(k,end:-1:1)-stable(1,end:-1:1);
+            else
+                %find which torquers flipped
+                flip=stable(k,end:-1:1)-stable(k+1,end:-1:1);
+            end
+            for kk=0:2
+                idx=find(flip((1:stlen)+kk*stlen));
+                if(isempty(idx))
+                    %no flip needed fill table with null flip
+                    table(k,kk*2+1)='0';
+                    table(k,kk*2+2)=0;
+                elseif(length(idx)==1)
+                    %flip needed get direction
+                    if(flip(kk*stlen+idx)==-1)
+                        %flip in negitave direction
+                        table(k,kk*2+1)='-';
+                    elseif(flip(kk*stlen+idx)==1)
+                        %flip in positive direction
+                        table(k,kk*2+1)='+';
+                    else
+                        %error unknown v
+                        error('Error In state table: could not filp from ''%s'' to ''%s''',stable(k,end:-1:1),stable(k+1,end:-1:1));
+                    end
+                    %set index
+                    table(k,kk*2+2)=idx;
+                else
+                    %attempt to flip multiple torquers in one axis
+                    error('Error In state table: imposible combination');
+                end
+            end
         end
         
         %exit async connection
@@ -312,6 +280,25 @@ function [stat]=stat_strip(line)
     stat=sprintf('%s  %s  %s',stsx,stsy,stsz);
 end
 
+function [dat]=stat_dat(line)
+    stsx=sscanf(line,'B\t%[+-] %*[+-] %*[+-] %*i %*i %*i');
+    stsy=sscanf(line,'B\t%*[+-] %[+-] %*[+-] %*i %*i %*i');
+    stsz=sscanf(line,'B\t%*[+-] %*[+-] %[+-] %*i %*i %*i');
+    %reformat status
+    dat=[stsx;stsy;stsz];
+end
+
+function [len]=stat_length(line)
+    lx=length(sscanf(line,'B\t%[+-] %*[+-] %*[+-] %*i %*i %*i'));
+    ly=length(sscanf(line,'B\t%*[+-] %[+-] %*[+-] %*i %*i %*i'));
+    lz=length(sscanf(line,'B\t%*[+-] %*[+-] %[+-] %*i %*i %*i'));
+    %make sure lenghts are consistant
+    if(lx~=ly || ly~=lz)
+        error('Inconsistant status lengths %i %i %i',lx,ly,lz);
+    end
+    len=lx;
+end
+
 function asyncOpen(sobj,sys)
     timeout = 5;
     %wmsg='async open use ^C to force quit';
@@ -367,3 +354,20 @@ function [success]=waitReady(sobj,timeout,output)
     end
     success=true;
 end
+
+function table=graycode(n)
+    if(n<=0 || round(n)~=n)
+        error('n must be a positive whole number');
+    end
+    if(n>20)
+        error('That''''s a large n did you really want such a big graycode table?');
+    end
+    if(n==1)
+        table=['0';'1'];
+        return
+    end
+    table=graycode(n-1);
+    tmp=table(end:-1:1,:);
+    table=[['0'*ones(2^(n-1),1),table];['1'*ones(2^(n-1),1),tmp]];
+end
+    
