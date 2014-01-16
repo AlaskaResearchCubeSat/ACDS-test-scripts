@@ -24,10 +24,12 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
     states=cell(1,length(table));
 
     cor=zeros(length(board_names),6);
-    
     xdat=zeros(length(board_names),length(table));
     ydat=zeros(length(board_names),length(table));
     zdat=zeros(length(board_names),length(table));
+    
+    %current number of retries
+    retry=0;
     
     try
         %open serial port
@@ -140,6 +142,11 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
             
         pause(1);
         
+        %acceptable error level
+        good_err=0.006;
+        %maximum number of retries
+        max_retry=5;
+        
         cstart=fix(clock);
         fprintf('Starting Test at %i/%i %i:%02i:%02i\nSimulation Running Please Wait\n',cstart(2:6));
 
@@ -153,8 +160,29 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
             off=zeros(3,length(board_names));
     
             for k=1:length(board_names)
-                %calculate offset
-                cor(k,:)=magSclCalc(board_names{k},ser,baud,gain{k}(1),gain{k}(2),a{k});
+                %force entry into the loop
+                erms=Inf;
+                %re run the test until the error is low but don't allow too
+                %many failed tests
+                while(erms>good_err)
+                    %calculate offset
+                    [cor(k,:),erms]=magSclCalc(board_names{k},ser,baud,gain{k}(1),gain{k}(2),a{k});%check error for problems
+                    
+                    if(erms>good_err)
+                        %check if maximum number of retries has been exceded
+                        if(retry>max_retry)
+                            %Throw an error, aborting the test
+                            error('Large calibration error of %f. Number of retries exceded aborting.',erms);
+                        else
+                            %give a warning with the test error
+                            warning('Large calibration error of %f. Redoing measurment.',erms);
+                            %Beep to notify the user TODO: is this needed/usefull?
+                            beep;
+                        end
+                        %increment number of retries
+                        retry=retry+1;
+                    end
+                end
                 %extract offset
                 off(1:2,k)=cor(k,[3 6]);
                 %convert to sattelite coordinates
@@ -221,6 +249,7 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
             end
             delete(ser);
         end
+        fprintf('Total Number of retries %i\n',retry);
         rethrow(err);
     end
     if exist('ser','var')
@@ -233,6 +262,8 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
         end
         delete(ser);
     end
+    fprintf('Total Number of retries %i\n',retry);
+    
     %plot data
     subplot(3,1,1);
     plot(xdat');
