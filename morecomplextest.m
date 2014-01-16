@@ -20,13 +20,8 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
        [1 0 0;0 0 1;0 -1 0],[1 0 0;0 0 1;0 1 0]};
 
     gain={[1,64],[-95.3,1],[1,64],[1,64]};
-    
-    states=cell(1,length(table));
 
     cor=zeros(length(board_names),6);
-    xdat=zeros(length(board_names),length(table));
-    ydat=zeros(length(board_names),length(table));
-    zdat=zeros(length(board_names),length(table));
     
     %current number of retries
     retry=0;
@@ -100,7 +95,10 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
         %rotate table so that k is first
         stable=stable(mod((k:(k+length(stable)))-1,length(stable))+1,:);
         
-        table=zeros(length(table),6);
+        table=zeros(length(stable),6);
+        xdat=zeros(length(board_names),length(table));
+        ydat=zeros(length(board_names),length(table));
+        zdat=zeros(length(board_names),length(table));
         
         for k=1:length(table)
             if(k==length(table))
@@ -137,6 +135,8 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
             end
         end
         
+        states=cell(1,length(table));
+
         %exit async connection
         asyncClose(ser);
             
