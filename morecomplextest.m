@@ -143,7 +143,7 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
         pause(1);
         
         %acceptable error level
-        good_err=0.006;
+        good_err=0.010;
         %maximum number of retries
         max_retry=5;
         
