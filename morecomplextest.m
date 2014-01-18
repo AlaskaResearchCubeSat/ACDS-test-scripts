@@ -88,14 +88,29 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
         tmp=tmp(:,end:-1:1);
         tmp=char(reshape(tmp',1,[]));
         
-        %generate status table from graycode values
-        stable=graycode(3*stlen);
-        %find starting index
-        k=find(all(char(ones(length(stable),1)*tmp)==stable,2));
-        %rotate table so that k is first
-        stable=stable(mod((k:(k+length(stable)))-1,length(stable))+1,:);
+        if 0
+            %generate table for all states
+            %generate status table from graycode values
+            stable=graycode(3*stlen);
+            %find starting index
+            k=find(all(char(ones(length(stable),1)*tmp)==stable,2));
+            %rotate table so that k is first
+            stable=stable(mod((k:(k+length(stable)))-1,length(stable))+1,:);
+        else
+            %generate a table for only flipping Z-axis torquers
+            %generate partial status table from graycode values
+            stable=graycode(stlen);
+            %find starting index
+            k=find(all(char(ones(length(stable),1)*tmp(1:4))==stable,2));
+            %rotate table so that k is first
+            stable=stable(mod((k:(k+length(stable)))-1,length(stable))+1,:);
+            %add extra status bits
+            stable=[stable,ones(length(stable),1)*tmp(5:12)];
+        end
+        
         
         table=zeros(length(stable),6);
+        %initialize other variables the same size as table
         xdat=zeros(length(board_names),length(table));
         ydat=zeros(length(board_names),length(table));
         zdat=zeros(length(board_names),length(table));
@@ -307,6 +322,18 @@ function [stat]=stat_strip(line)
     stsx=sscanf(line,'%[+-] %*[+-] %*[+-] %*i %*i %*i');
     stsy=sscanf(line,'%*[+-] %[+-] %*[+-] %*i %*i %*i');
     stsz=sscanf(line,'%*[+-] %*[+-] %[+-] %*i %*i %*i');
+    %get lengths of each status
+    lx=length(stsx);
+    ly=length(stsy);
+    lz=length(stsz);
+    %check if status was read
+    if(lx)
+        error('Failed to parse status from line ''%s''',line);
+    end
+    %check lengths
+    if(lx~=ly || ly~=lz)
+        error('Inconsistant status lengths %i %i %i',lx,ly,lz);
+    end
     %reformat status
     stat=sprintf('%s  %s  %s',stsx,stsy,stsz);
 end
@@ -315,6 +342,18 @@ function [dat]=stat_dat(line)
     stsx=sscanf(line,'%[+-] %*[+-] %*[+-] %*i %*i %*i');
     stsy=sscanf(line,'%*[+-] %[+-] %*[+-] %*i %*i %*i');
     stsz=sscanf(line,'%*[+-] %*[+-] %[+-] %*i %*i %*i');
+    %get lengths of each status
+    lx=length(stsx);
+    ly=length(stsy);
+    lz=length(stsz);
+    %check if status was read
+    if(lx)
+        error('Failed to parse status from line ''%s''',line);
+    end
+    %check lengths
+    if(lx~=ly || ly~=lz)
+        error('Inconsistant status lengths %i %i %i',lx,ly,lz);
+    end
     %reformat status
     dat=[stsx;stsy;stsz];
 end
@@ -323,6 +362,10 @@ function [len]=stat_length(line)
     lx=length(sscanf(line,'%[+-] %*[+-] %*[+-] %*i %*i %*i'));
     ly=length(sscanf(line,'%*[+-] %[+-] %*[+-] %*i %*i %*i'));
     lz=length(sscanf(line,'%*[+-] %*[+-] %[+-] %*i %*i %*i'));
+    %check if status was read
+    if(lx)
+        error('Failed to parse status from line ''%s''',line);
+    end
     %make sure lenghts are consistant
     if(lx~=ly || ly~=lz)
         error('Inconsistant status lengths %i %i %i',lx,ly,lz);
