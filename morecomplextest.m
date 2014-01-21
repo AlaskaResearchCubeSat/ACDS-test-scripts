@@ -327,7 +327,7 @@ function [stat]=stat_strip(line)
     ly=length(stsy);
     lz=length(stsz);
     %check if status was read
-    if(lx)
+    if(lx==0)
         error('Failed to parse status from line ''%s''',line);
     end
     %check lengths
@@ -347,7 +347,7 @@ function [dat]=stat_dat(line)
     ly=length(stsy);
     lz=length(stsz);
     %check if status was read
-    if(lx)
+    if(lx==0)
         error('Failed to parse status from line ''%s''',line);
     end
     %check lengths
@@ -363,7 +363,7 @@ function [len]=stat_length(line)
     ly=length(sscanf(line,'%*[+-] %[+-] %*[+-] %*i %*i %*i'));
     lz=length(sscanf(line,'%*[+-] %*[+-] %[+-] %*i %*i %*i'));
     %check if status was read
-    if(lx)
+    if(lx==0)
         error('Failed to parse status from line ''%s''',line);
     end
     %make sure lenghts are consistant
