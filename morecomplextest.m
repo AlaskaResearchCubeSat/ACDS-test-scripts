@@ -109,11 +109,8 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
         end
         
         
+        %initialize flip table
         table=zeros(length(stable),6);
-        %initialize other variables the same size as table
-        xdat=zeros(length(board_names),length(table));
-        ydat=zeros(length(board_names),length(table));
-        zdat=zeros(length(board_names),length(table));
         
         for k=1:length(table)
             if(k==length(table))
@@ -161,6 +158,11 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
         good_err=0.010;
         %maximum number of retries
         max_retry=5;
+        
+        %initialize data arrays
+        xdat=zeros(length(board_names),length(table));
+        ydat=zeros(length(board_names),length(table));
+        zdat=zeros(length(board_names),length(table));
         
         cstart=fix(clock);
         fprintf('Starting Test at %i/%i %i:%02i:%02i\nSimulation Running Please Wait\n',cstart(2:6));
