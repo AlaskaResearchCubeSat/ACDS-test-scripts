@@ -231,6 +231,12 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
             fprintf(ser,'flip %c%i %c%i %c%i\n',table(kk,:));
             %read echoed line
             fgetl(ser);
+            %get status line
+            stline=fgetl(ser) 
+            %check if state changed
+            if(any(table(kk,2:2:6)) && all(stat_strip(stline)==states{kk}))
+                error('Torquer Flip Failed')
+            end
             %wait for completion
             waitReady(ser,5);
             %print ^C to exit async connection
