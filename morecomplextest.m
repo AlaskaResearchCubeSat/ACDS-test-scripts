@@ -124,7 +124,7 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
                 idx=find(flip((1:stlen)+kk*stlen));
                 if(isempty(idx))
                     %no flip needed fill table with null flip
-                    table(k,kk*2+1)='0';
+                    table(k,kk*2+1)=' ';
                     table(k,kk*2+2)=0;
                 elseif(length(idx)==1)
                     %flip needed get direction
@@ -139,7 +139,7 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
                         error('Error In state table: could not filp from ''%s'' to ''%s''',stable(k,end:-1:1),stable(k+1,end:-1:1));
                     end
                     %set index
-                    table(k,kk*2+2)=idx;
+                    table(k,kk*2+2)=stlen-idx+1;
                 else
                     %attempt to flip multiple torquers in one axis
                     error('Error In state table: imposible combination');
