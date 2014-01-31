@@ -139,7 +139,7 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
                         error('Error In state table: could not filp from ''%s'' to ''%s''',stable(k,end:-1:1),stable(k+1,end:-1:1));
                     end
                     %set index
-                    table(k,kk*2+2)=stlen-idx+1;
+                    table(k,kk*2+2)=idx;
                 else
                     %attempt to flip multiple torquers in one axis
                     error('Error In state table: imposible combination');
