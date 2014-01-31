@@ -287,8 +287,9 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
     end
     fprintf('Total Number of retries %i\n',retry);
     
+    clf;
     %plot data
-    subplot(3,1,1);
+    subplot(4,1,1);
     plot(xdat');
     ax(1)=gca;
     legend(board_names{:});
@@ -296,27 +297,56 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
     set(gca,'XTick',1:length(states));
     set(gca,'XTickLabel',[]);
     ylabel('X Field Offset');
+    set(gca(),'XGrid','on')
 
-    subplot(3,1,2);
+    subplot(4,1,2);
     plot(ydat');
     ax(2)=gca;
     set(gca,'XTick',1:length(states));
     set(gca,'XTickLabel',[]);
     ylabel('Y Field Offset');
+    set(gca(),'XGrid','on')
 
-    subplot(3,1,3);
+    subplot(4,1,3);
     plot(zdat');
     ax(3)=gca;
     set(gca,'XTick',1:length(states));
     
-    set(gca,'XTickLabel',states)
+    set(gca,'XTickLabel',[])
     xlabel('Torquer Status');
     ylabel('Z Field Offset');
+    set(gca(),'XGrid','on');
+    
+    subplot(4,1,4);
+    %initialized status plot data
+    stp=zeros(length(states),stlen);
+    %strip out Z - axis status data
+    for k=1:length(states)
+        dat=stat_dat(states{k});
+        stp(k,:)=dat(3,:);
+    end
+    %convert to numerical values and offset each line
+    stp=((1:stlen)'*ones(1,length(states)))'+0.4*(1-(stp-'+'));
+    
+    
+    stairs(stp);
+    ax(4)=gca;
+    set(gca,'XTick',1:length(states));
+    
+    set(gca,'XTickLabel',states);
+    set(gca,'YTick',1:stlen);
+    xlabel('Torquer Status');
+    ylabel('Torquer States');
+    set(gca(),'XGrid','on');
+    
     linkaxes(ax,'x');
     
     axis('tight');
+    %set limits for torquer states plot
+    set(gca,'Ylim',[0 5])
     
     rotateXLabels(gca,45);
+    
     
     saveas(gcf(),['Z:\ADCS\figures\morecomplextest'],'fig');
     
