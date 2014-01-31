@@ -84,6 +84,8 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
         
         initial=stdat;
         
+        char(initial)
+        
         tmp=(initial-'+')/2+'0';
         tmp=tmp(:,end:-1:1);
         tmp=char(reshape(tmp',1,[]));
@@ -107,6 +109,9 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
             %add extra status bits
             stable=[stable,ones(length(stable),1)*tmp(5:12)];
         end
+        
+        %print out stable for debugging
+        fprintf(char([reshape([reshape(('%c')'*ones(1,4),1,[]) ' ']'*ones(1,3),1,[]) '\n']),(stable(:,end:-1:1)'-'0')*2+'+');
         
         
         %initialize flip table
@@ -147,11 +152,13 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
             end
         end
         
+        fprintf('flip %c%i %c%i %c%i\n',table');
+        
         states=cell(1,length(table));
 
         %exit async connection
         asyncClose(ser);
-            
+        
         pause(1);
         
         %acceptable error level
@@ -223,12 +230,13 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
             %get echoed line
             fgetl(ser);
             %get status line
-            stline=fgetl(ser); 
+            stline=fgetl(ser) 
             %strip out status
-            states{kk}=stat_strip(stline);
+            states{kk}=stat_strip(stline)
             
             %flip torquers
             fprintf(ser,'flip %c%i %c%i %c%i\n',table(kk,:));
+            fprintf('flip %c%i %c%i %c%i\n',table(kk,:));
             %read echoed line
             fgetl(ser);
             %get status line
@@ -238,7 +246,7 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
                 error('Torquer Flip Failed')
             end
             %wait for completion
-            waitReady(ser,5);
+            waitReady(ser,5,true);
             %print ^C to exit async connection
             asyncClose(ser); 
             
