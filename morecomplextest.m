@@ -362,10 +362,12 @@ function [dat]=stat_dat(line)
     if(lx~=ly || ly~=lz)
         error('Inconsistant status lengths %i %i %i',lx,ly,lz);
     end
+    stsx=reshape(stsx,1,[]);
+    stsy=reshape(stsy,1,[]);
+    stsz=reshape(stsz,1,[]);
     %reformat status
     dat=[stsx;stsy;stsz];
 end
-
 function [len]=stat_length(line)
     lx=length(sscanf(line,'%[+-] %*[+-] %*[+-] %*i %*i %*i'));
     ly=length(sscanf(line,'%*[+-] %[+-] %*[+-] %*i %*i %*i'));
