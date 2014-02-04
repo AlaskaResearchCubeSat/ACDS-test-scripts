@@ -1,4 +1,4 @@
-function [flips,stat,stat_index]=tCalTst(mag_axis,cor,com,baud)
+function [flips,stat,stat_index]=tCalTst(mag_axis,cor,com,baud,gain,ADCgain)
     if(nargin<3)
         baud=57600;
     end
@@ -7,6 +7,12 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,cor,com,baud)
     end
     if(nargin<2)
         com='COM3';
+    end
+    if (~exist('gain','var') || isempty(gain))
+        gain=1;
+    end
+    if (~exist('ADCgain','var') || isempty(ADCgain))
+        ADCgain=64;
     end
     try
         cc=cage_control();
@@ -25,6 +31,21 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,cor,com,baud)
         pause(1)
         %set terminator to CR/LF
         set(ser,'Terminator','LF');
+        
+        %set ADC gain for magnetomitor
+        fprintf(ser,sprintf('gain %i',ADCgain));
+        %get echoed line
+        fgetl(ser);
+        %get output line
+        gs=fgetl(ser);
+        %make sure that gain is correct
+        if(ADCgain~=sscanf(gs,'ADC gain = %i'))
+            error('Failed to set ADC gain to %i',ADCgain);
+        end
+        if ~waitReady(ser,10)
+            error('Could not communicate with prototype. Check connections');
+        end
+        
         %connect to ACDS board
         fprintf(ser,'async ACDS');
         fgetl(ser);
