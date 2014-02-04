@@ -1,6 +1,9 @@
-function [flips,stat,stat_index]=tCalTst(mag_axis,cor,com,baud,gain,ADCgain)
+function [flips,stat,stat_index]=tCalTst(stable,mag_axis,cor,com,baud,gain,ADCgain)
     if(nargin<3)
         baud=57600;
+    end
+    if(~exist('stable','var') || isempty(stable))
+        error('stable must be given')
     end
     if(~exist('mag_axis','var') || isempty(mag_axis))
         mag_axis='';
@@ -47,10 +50,7 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,cor,com,baud,gain,ADCgain)
         end
         
         %connect to ACDS board
-        fprintf(ser,'async ACDS');
-        fgetl(ser);
-        fgetl(ser);
-        pause(1);
+        asyncOpen(ser,'ACDS');
         %set to machine readable opperation
         fprintf(ser,'output machine');
         
@@ -69,10 +69,19 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,cor,com,baud,gain,ADCgain)
             error('Error : Could not communicate with prototype. Check connections');
         end
         
-        %print ^C to exit async connection
-        fprintf(ser,03);
+        %get torquer status
+        fprintf(ser,'statcode');
+        %get echoed line
         fgetl(ser);
-        fgetl(ser);
+        %get status line
+        stline=fgetl(ser); 
+        %strip out status
+        tqstat=stat_dat(stline);
+        stlen=stat_length(stline);
+        
+        
+        %exit async connection
+        asyncClose(ser);
         
         %set the Sensor Proxy to only print messages for errors
        % fprintf(ser,'log error');
@@ -95,10 +104,10 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,cor,com,baud,gain,ADCgain)
         
         
         %torquer flip array
-        tq={'00' '+1' '+2';
-            '00' '+1' '-2';
-            '00' '+2' '-1' ;
-            '00' '-1' '-2'};
+        tq={'0' '+1' '+2';
+            '0' '+1' '-2';
+            '0' '+2' '-1' ;
+            '0' '-1' '-2'};
         
         %allocate for sensor
         sensor=zeros(size(Bs));
@@ -155,48 +164,39 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,cor,com,baud,gain,ADCgain)
                     error('Prototype not responding\n');
                 end
                 %connect to ACDS board
-                fprintf(ser,'async ACDS');
-                %wait a bit
-                pause(1);
-                %clear buffer
-                if(ser.BytesAvailable)
-                    fread(ser,ser.BytesAvailable);
-                end
-                
-                fx=tq{(tqs(1:2)==1)*[2;1]+1,randi(end)};
-                fy=tq{(tqs(3:4)==1)*[2;1]+1,randi(end)};
-                fz=tq{(tqs(5:6)==1)*[2;1]+1,randi(end)};
+                asyncOpen(ser,'ACDS');
+               
+                [tqx,dirx]=random_flip(tqstat(:,1));
+                [tqy,diry]=random_flip(tqstat(:,2));
+                [tqz,dirz]=random_flip(tqstat(:,3));
                 %random torquer flip
-                cmd=sprintf('flip %s %s %s',fx,fy,fz);
+                cmd=sprintf('flip 0 0 %c%i',dirz,tqz);
                 %save flips
                 flips{k/10}=cmd;
                 fprintf(ser,'%s\n',cmd);
                 %get line for echo
                 fgetl(ser);
                 %get line for status
-                line=fgetl(ser);
+                stline=fgetl(ser);
                 %save status
                 stat{k/10}=line(1:end-1);
                 %parse status
                 try
-                    tqs=sscanf(line,'%s %s %s %s %i %i %i  ',10);
-                    tqs=reshape((tqs(2:7)=='+')-(tqs(2:7)=='-'),1,6);
-                    idx=stat2Idx(line);
+                    idx=stat2Idx(stline,stable);
                     %save index
                     stat_index(k/10)=idx;
                     curOS=cor(3+idx,:);
+                    %parse current status
+                    tqstat=stat_dat(stline);
                 catch err
-                    fprintf(2,'Error : Could not parse torquer status \"%s\"\n',line(1:end-1));
+                    fprintf(2,'Error : Could not parse torquer status \"%s\"\n',stline(1:end-1));
                     rethrow(err);
                 end
                 if ~waitReady(ser,30)
                     error('Prototype not responding\n');
                 end
-                %print ^C to exit async connection
-                fprintf(ser,03);
-                %clear buffer
-                fgetl(ser);
-                fgetl(ser);
+                %exit async connection
+                asyncClose(ser);
             end
         end
         figure(1);
@@ -367,4 +367,124 @@ function [success]=waitReady(sobj,timeout,output)
         end
     end
     success=true;
+end
+
+function asyncOpen(sobj,sys)
+    timeout = 5;
+    %wmsg='async open use ^C to force quit';
+    wmsg='Using Address 0x12';
+    fprintf(sobj,'async %s\n',sys);
+    msg=[];
+    m=fgetl(sobj);
+    %fprintf('%s',m);
+    while ~strncmp(wmsg,msg,length(wmsg)) && timeout>0
+        msg=fgetl(sobj);
+        %fprintf('%s',msg);
+        if(strncmpi('Error',msg,length('Error')))
+            error(msg);
+        end
+        timeout=timeout-1;
+    end
+end
+
+function asyncClose(sobj)
+    %get number of bytes in buffer
+    n=sobj.BytesAvailable;
+    if(n)
+        %read all bytes
+        fread(sobj,n);
+    end
+    %send ^C
+    fprintf(sobj,'%c',03);
+    %wait for completion
+    waitReady(sobj,5);
+    %print for debugging
+    %fprintf('async Closed\n');
+end
+
+function [stat]=stat_strip(line)
+    stsx=sscanf(line,'%[+-] %*[+-] %*[+-] %*i %*i %*i');
+    stsy=sscanf(line,'%*[+-] %[+-] %*[+-] %*i %*i %*i');
+    stsz=sscanf(line,'%*[+-] %*[+-] %[+-] %*i %*i %*i');
+    %get lengths of each status
+    lx=length(stsx);
+    ly=length(stsy);
+    lz=length(stsz);
+    %check if status was read
+    if(lx==0)
+        error('Failed to parse status from line ''%s''',line);
+    end
+    %check lengths
+    if(lx~=ly || ly~=lz)
+        error('Inconsistant status lengths %i %i %i',lx,ly,lz);
+    end
+    %reformat status
+    stat=sprintf('%s %s %s',stsx,stsy,stsz);
+end
+
+function [dat]=stat_dat(line)
+    stsx=sscanf(line,'%[+-] %*[+-] %*[+-] %*i %*i %*i');
+    stsy=sscanf(line,'%*[+-] %[+-] %*[+-] %*i %*i %*i');
+    stsz=sscanf(line,'%*[+-] %*[+-] %[+-] %*i %*i %*i');
+    %get lengths of each status
+    lx=length(stsx);
+    ly=length(stsy);
+    lz=length(stsz);
+    %check if status was read
+    if(lx==0)
+        error('Failed to parse status from line ''%s''',line);
+    end
+    %check lengths
+    if(lx~=ly || ly~=lz)
+        error('Inconsistant status lengths %i %i %i',lx,ly,lz);
+    end
+    stsx=reshape(stsx,1,[]);
+    stsy=reshape(stsy,1,[]);
+    stsz=reshape(stsz,1,[]);
+    %reformat status
+    dat=[stsx;stsy;stsz];
+end
+function [len]=stat_length(line)
+    lx=length(sscanf(line,'%[+-] %*[+-] %*[+-] %*i %*i %*i'));
+    ly=length(sscanf(line,'%*[+-] %[+-] %*[+-] %*i %*i %*i'));
+    lz=length(sscanf(line,'%*[+-] %*[+-] %[+-] %*i %*i %*i'));
+    %check if status was read
+    if(lx==0)
+        error('Failed to parse status from line ''%s''',line);
+    end
+    %make sure lenghts are consistant
+    if(lx~=ly || ly~=lz)
+        error('Inconsistant status lengths %i %i %i',lx,ly,lz);
+    end
+    len=lx;
+end
+
+function [tq,dir]=random_flip(stat)
+    l=length(stat);
+    tq=randi([0,l]);
+    if l==0
+        dir='';
+    else
+        %get current status
+        d=stat(tq);
+        if(d=='+')
+            dir='-';
+        elseif(d=='-')
+            dir='+';
+        else
+            error('Unknown torquer direction ''%c''',d)
+        end
+    end
+end
+        
+
+function idx=stat2Idx(stat,table)
+    %strip status info
+    stat=stat_strip(stat);
+    %find stat in table
+    idx=find(all(ones(length(table),1)*stat==table,2),1,'first');
+    %check if index was found
+    if(isempty(idx))
+        idx=NaN;
+    end
 end
