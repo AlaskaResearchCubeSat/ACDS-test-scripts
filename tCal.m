@@ -1,4 +1,4 @@
-function [cor,meas,Bs,tlen]=tCal(mag_axis,com,baud,gain,ADCgain)
+function [cor,meas,Bs,tlen]=tCal(mag_axis,com,baud,gain,ADCgain,a)
     %calibrate torquers and magnetomitor using helmholtz cage. Connects to
     %ACDS board using async connection to sensor proxy
     if(~exist('baud','var') || isempty(baud))
@@ -16,7 +16,18 @@ function [cor,meas,Bs,tlen]=tCal(mag_axis,com,baud,gain,ADCgain)
     if (~exist('ADCgain','var') || isempty(ADCgain))
         ADCgain=64;
     end
-    
+    if(~exist('a','var') || isempty(a))
+        %if no transform is given then use unity
+        %coult use identity matrix but 1 is faster and will work
+        a=1;
+        inva=1;
+    else
+        if size(a)~=[3 3]
+            error('a must be a 3x3 matrix')
+        end
+        %calculate inverse to correct for measurments
+        inva=inv(a);
+    end
     magScale=1/(2*65535*1e-3*gain*ADCgain);
     try
         cc=cage_control();
@@ -234,7 +245,7 @@ function [cor,meas,Bs,tlen]=tCal(mag_axis,com,baud,gain,ADCgain)
         for kk=1:length(table)
             fprintf('Starting Calibration %i of %i\n',kk,length(table));
             %set initial field
-            cc.Bs=Bs(:,1);
+            cc.Bs=a*Bs(:,1);
             %give extra settaling time
             pause(1);
             
@@ -244,13 +255,13 @@ function [cor,meas,Bs,tlen]=tCal(mag_axis,com,baud,gain,ADCgain)
             pause(1);
 
             for k=1:length(Bs)
-                cc.Bs=Bs(:,k);
+                cc.Bs=a*Bs(:,k);
                 %pause to let the supply settle
                 pause(0.01);
                 %tell prototype to take a single measurment
                 fprintf(ser,sprintf('mag single %s',mag_axis));
                 %make measurment using sensor
-                sensor(:,k+(idx)*length(Bs))=cc.Bm';
+                sensor(:,k+(idx)*length(Bs))=inva*cc.Bm';
                 %read echoed line
                 fgetl(ser);
                 %read measurments from prototype
