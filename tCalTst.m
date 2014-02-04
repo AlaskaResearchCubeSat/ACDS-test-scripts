@@ -1,0 +1,349 @@
+function [flips,stat,stat_index]=tCalTst(mag_axis,cor,com,baud)
+    if(nargin<3)
+        baud=57600;
+    end
+    if(~exist('mag_axis','var') || isempty(mag_axis))
+        mag_axis='';
+    end
+    if(nargin<2)
+        com='COM3';
+    end
+    try
+        cc=cage_control();
+        cc.loadCal('calibration.cal');
+        %open serial port
+        ser=serial(com,'BaudRate',baud);
+        %set timeout to 15s
+        set(ser,'Timeout',15);
+        %open port
+        fopen(ser);
+
+        %disable terminator
+        set(ser,'Terminator','');
+        %print ^C to exit async connection
+        fprintf(ser,03);
+        pause(1)
+        %set terminator to CR/LF
+        set(ser,'Terminator','LF');
+        %connect to ACDS board
+        fprintf(ser,'async ACDS');
+        fgetl(ser);
+        fgetl(ser);
+        pause(1);
+        %set to machine readable opperation
+        fprintf(ser,'output machine');
+        
+        pause(1);
+        %initialize torquers to a known state
+        fprintf(ser,'init');
+        
+        if ~waitReady(ser,30)
+            error('Error : Could not communicate with prototype. Check connections');
+        end
+        
+        %set the ACDS to only print messages for errors
+        fprintf(ser,'log error');
+        
+        if ~waitReady(ser,30)
+            error('Error : Could not communicate with prototype. Check connections');
+        end
+        
+        %print ^C to exit async connection
+        fprintf(ser,03);
+        fgetl(ser);
+        fgetl(ser);
+        
+        %set the Sensor Proxy to only print messages for errors
+       % fprintf(ser,'log error');
+        
+        %if ~waitReady(ser,30,true)
+         %   error('Error : Could not communicate with prototype. Check connections');
+        %end
+        
+        theta=linspace(0,2*pi,500);
+        %Bs=1*[sin(theta);cos(theta);0*theta];
+        %d=2;
+        %ec=0.5;
+        %Bs=0.1*[d./(1+ec*cos(theta)).*sin(theta);d./(1+ec*cos(theta)).*cos(theta);0*theta];
+        
+        Bs=0.3*(1.5-[1;1;0]*cos(10*theta)).*[sin(theta);cos(theta);0*theta];
+        
+        
+        %theta=linspace(0,8*pi,300);
+        %Bs=1/30*[theta.*sin(theta);theta.*cos(theta);0*theta];
+        
+        
+        %torquer flip array
+        tq={'00' '+1' '+2';
+            '00' '+1' '-2';
+            '00' '+2' '-1' ;
+            '00' '-1' '-2'};
+        
+        %allocate for sensor
+        sensor=zeros(size(Bs));
+        %allocate for prototype
+        meas=zeros(size(Bs));
+        %set initial field
+        cc.Bs=Bs(:,1);
+        %give extra settaling time
+        pause(1);
+        
+        %current torquer field offset
+        curOS=cor(3,:);
+        
+        Xc=zeros(1,length(Bs));
+        Yc=zeros(1,length(Bs));
+        
+        flips=cell(floor(length(Bs)/10),1);
+        stat=cell(floor(length(Bs)/10),1);
+        stat_index=zeros(floor(length(Bs)/10),1);
+        tqs=[1,-1,1,-1,1,-1];
+        
+        for k=1:length(Bs)
+            cc.Bs=Bs(:,k);
+            %pause to let the supply settle
+            pause(0.01);
+            %tell prototype to take a single measurment
+            fprintf(ser,sprintf('mag single %s',mag_axis));
+            %make measurment using sensor
+            sensor(:,k)=cc.Bm';
+            %read echoed line
+            fgetl(ser);
+            %read measurments from prototype
+            line=fgetl(ser);
+            try
+                lastwarn('');
+                dat=sscanf(line,'%i %i');
+                if(~isempty(lastwarn))
+                    [warn,id]=lastwarn;
+                    error(id,warn);
+                end
+                meas(1:2,k)=dat;
+            catch err
+                fprintf(2,'Error : Could not parse measurments \"%s\"\n',line(1:end-1));
+                rethrow(err);
+            end
+            meas(1:2,k)=dat;
+            meas(3,k)=0;
+            %Calculate Corrected Field
+            Xc(k)=dat'*cor(1:2,1)+curOS(1);
+            Yc(k)=dat'*cor(1:2,2)+curOS(2);
+            %do a random flip every 10 samples
+            if mod(k,10)==0
+                if ~waitReady(ser,30)
+                    error('Prototype not responding\n');
+                end
+                %connect to ACDS board
+                fprintf(ser,'async ACDS');
+                %wait a bit
+                pause(1);
+                %clear buffer
+                if(ser.BytesAvailable)
+                    fread(ser,ser.BytesAvailable);
+                end
+                
+                fx=tq{(tqs(1:2)==1)*[2;1]+1,randi(end)};
+                fy=tq{(tqs(3:4)==1)*[2;1]+1,randi(end)};
+                fz=tq{(tqs(5:6)==1)*[2;1]+1,randi(end)};
+                %random torquer flip
+                cmd=sprintf('flip %s %s %s',fx,fy,fz);
+                %save flips
+                flips{k/10}=cmd;
+                fprintf(ser,'%s\n',cmd);
+                %get line for echo
+                fgetl(ser);
+                %get line for status
+                line=fgetl(ser);
+                %save status
+                stat{k/10}=line(1:end-1);
+                %parse status
+                try
+                    tqs=sscanf(line,'%s %s %s %s %i %i %i  ',10);
+                    tqs=reshape((tqs(2:7)=='+')-(tqs(2:7)=='-'),1,6);
+                    idx=stat2Idx(line);
+                    %save index
+                    stat_index(k/10)=idx;
+                    curOS=cor(3+idx,:);
+                catch err
+                    fprintf(2,'Error : Could not parse torquer status \"%s\"\n',line(1:end-1));
+                    rethrow(err);
+                end
+                if ~waitReady(ser,30)
+                    error('Prototype not responding\n');
+                end
+                %print ^C to exit async connection
+                fprintf(ser,03);
+                %clear buffer
+                fgetl(ser);
+                fgetl(ser);
+            end
+        end
+        figure(1);
+        clf
+        hold on
+        %plot measured field
+        %plot(sensor(1,:),sensor(2,:),'b');
+        %plot commanded field
+        plot(Bs(1,:),Bs(2,:),'r');
+        %Calculate Scale only corrected values
+        Xsc=meas(1:2,:)'*cor(1:2,1);
+        Ysc=meas(1:2,:)'*cor(1:2,2);
+        plot(Xsc,Ysc,'g');
+        %calculate center
+        sc(1)=mean(Xsc);
+        sc(2)=mean(Ysc);
+        %plot scale only corrected center
+        hc=plot(sc(1),sc(2),'go');
+        set(get(get(hc,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
+        %plot corrected values
+        plot(Xc,Yc,'b');
+        %calculate center
+        c(1)=mean(Xc);
+        c(2)=mean(Yc);
+        %plot corrected center
+        hc=plot(c(1),c(2),'bo');
+        set(get(get(hc,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
+        %calculate center
+        c=mean(sensor,2);
+        %plot centers for measured
+        %hc=plot(c(1),c(2),'b+');
+        %set(get(get(hc,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
+        %calculate center
+        c=mean(Bs,2);
+        %plot centers for commanded
+        hc=plot(c(1),c(2),'rx');
+        set(get(get(hc,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
+        hold off
+        ylabel('Magnetic Field [gauss]');
+        xlabel('Magnetic Field [gauss]');
+        %legend('Measured','Commanded','Scale only Corrected','Corrected');
+        legend('Commanded','Scale only Corrected','Corrected');
+        legend('Location','NorthEastOutside');
+        axis('square');
+        axis('equal');
+        oldp=addpath('Z:\ADCS\functions');
+        fig_export('Z:\ADCS\figures\torqueCalTst.eps');
+        path(oldp);
+        figure(2);
+        clf
+        %sample number
+        sn=1:length(Xc);
+        %calculate error magnitude
+        err=[Xc;Yc]-Bs(1:2,:);
+        err_s=sum(err.^2);
+        %print out error
+        fprintf('RMS Error = %f mGauss\n',sqrt(mean(err_s))*1e3);
+        fprintf('Max Error = %f mGauss\n',max(sqrt(err_s))*1e3);
+        %plot errors
+        plot(sn,err(1,:),sn,err(2,:),sn,sqrt(err_s));
+        %legend
+        legend('X error','Y error','error magnitude');
+        xlabel('Sample Number');
+        ylabel('Error [Gauss]');
+        
+        %add functions folder to path
+        oldp=addpath('Z:\ADCS\functions');
+        %save plot
+        fig_export('Z:\ADCS\figures\torqueCalTst-err.eps');
+        %restore path
+        path(oldp);
+        %create new figure and add torquer status subplot
+        figure(3);
+        clf
+        s1=subplot(2,1,1);
+        %plot errors
+        plot(sn,err(1,:),sn,err(2,:),sn,sqrt(err_s));
+        %legend
+        legend('X error','Y error','error magnitude');
+        xlabel('Sample Number');
+        ylabel('Error [Gauss]');
+        
+        sn=10*(1:length(stat));
+        tstat=zeros(6,length(stat));
+        %parse torquer statuses
+        for k=1:length(stat)
+            s=sscanf(stat{k},'%s %s %s %s %i %i %i  ',10);
+            for kk=1:6
+                if s(kk+1)=='+'
+                    tstat(kk,k)=1;
+                elseif s(kk+1)=='-'
+                    tstat(kk,k)=-1;
+                else
+                    tstat(kk,k)=NaN;
+                end
+            end
+        end
+        %plot for torquer status
+        s2=subplot(2,1,2);
+        hold on;
+        stairs(sn,3*tstat(1,:)+4,'r')
+        stairs(sn,3*tstat(2,:)+12,'g')
+        stairs(sn,3*tstat(3,:)+20,'b')
+        stairs(sn,3*tstat(4,:)+28,'m')
+        stairs(sn,3*tstat(5,:)+36,'c')
+        stairs(sn,3*tstat(6,:)+44,'y')
+        stairs(sn,stat_index,'k');
+        hold off;
+        legend('X1','X2','Y1','Y2','Z1','Z2','Index');
+        %link subplots x-axis
+        linkaxes([s1,s2],'x');
+        %add functions folder to path
+        oldp=addpath('Z:\ADCS\functions');
+        %save plot
+        fig_export('Z:\ADCS\figures\torqueCalTst-err-flips.eps');
+        %restore path
+        path(oldp);
+    catch err
+        if exist('ser','var')
+            if strcmp(ser.Status,'open')
+                fclose(ser);
+            end
+            delete(ser);
+        end
+        if exist('cc','var')
+            delete(cc);
+        end
+        rethrow(err);
+    end
+    if exist('ser','var')
+        if strcmp(ser.Status,'open')
+            %print Q to stop simulation
+            fprintf(ser,'Q');
+            while ser.BytesToOutput
+            end
+            fclose(ser);
+        end
+        delete(ser);
+    end
+    if exist('cc','var')
+        delete(cc);
+    end
+end
+
+function [success]=waitReady(sobj,timeout,output)
+    if nargin<3
+        output=false;
+    end
+    if nargin<2
+        timeout=5;
+    end
+    msg=0;
+    count=0;
+    while msg(end)~='>'
+        len=sobj.BytesAvailable;
+        if len==0
+            if count*3>=timeout
+                success=false;
+                return
+            end
+            pause(3);
+            count=count+1;
+            continue;
+        end
+        [msg,~,~]=fread(sobj,len);
+        if output
+            fprintf('%s\n',char(msg'));
+        end
+    end
+    success=true;
+end
