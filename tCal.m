@@ -71,19 +71,132 @@ function [cor,meas,Bs,tlen]=tCal(mag_axis,com,baud,gain,ADCgain)
             error('Error : Could not communicate with prototype. Check connections');
         end
         
+        %get torquer status
+        fprintf(ser,'statcode');
+        %get echoed line
+        fgetl(ser);
+        %get status line
+        stline=fgetl(ser); 
+        %strip out status
+        stdat=stat_dat(stline);
+        stlen=stat_length(stline);
+        
+        initial=stdat;
+        
+        char(initial)
+        
+        tmp=(initial-'+')/2+'0';
+        tmp=tmp(:,end:-1:1);
+        tmp=char(reshape(tmp',1,[]));
+        
+        if 0
+            %generate table for all states
+            %generate status table from graycode values
+            stable=graycode(3*stlen);
+            %find starting index
+            k=find(all(char(ones(length(stable),1)*tmp)==stable,2));
+            %rotate table so that k is first
+            stable=stable(mod((k:(k+length(stable)))-1,length(stable))+1,:);
+        else
+            %generate a table for only flipping Z-axis torquers
+            %generate partial status table from graycode values
+            stable=graycode(stlen);
+            %find starting index
+            k=find(all(char(ones(length(stable),1)*tmp(1:4))==stable,2));
+            %rotate table so that k is first
+            stable=stable(mod((k:(k+length(stable)))-1,length(stable))+1,:);
+            %add extra status bits
+            stable=[stable,ones(length(stable),1)*tmp(5:12)];
+        end
+        
+        %initialize flip table
+        table=zeros(length(stable),6);
+        
+        for k=1:length(table)
+            if(k==length(table))
+                %wrap around so we end up back where we started
+                flip=stable(k,end:-1:1)-stable(1,end:-1:1);
+            else
+                %find which torquers flipped
+                flip=stable(k,end:-1:1)-stable(k+1,end:-1:1);
+            end
+            for kk=0:2
+                idx=find(flip((1:stlen)+kk*stlen));
+                if(isempty(idx))
+                    %no flip needed fill table with null flip
+                    table(k,kk*2+1)=' ';
+                    table(k,kk*2+2)=0;
+                elseif(length(idx)==1)
+                    %flip needed get direction
+                    if(flip(kk*stlen+idx)==-1)
+                        %flip in negitave direction
+                        table(k,kk*2+1)='-';
+                    elseif(flip(kk*stlen+idx)==1)
+                        %flip in positive direction
+                        table(k,kk*2+1)='+';
+                    else
+                        %error unknown v
+                        error('Error In state table: could not filp from ''%s'' to ''%s''',stable(k,end:-1:1),stable(k+1,end:-1:1));
+                    end
+                    %set index
+                    table(k,kk*2+2)=idx;
+                else
+                    %attempt to flip multiple torquers in one axis
+                    error('Error In state table: imposible combination');
+                end
+            end
+        end
+        
+        nstable=zeros(length(stable),3*(stlen+1));
+        %convert stable to char representation
+        for k=1:length(stable)
+            nstable(k,:)=sprintf(char(reshape([reshape(('%c')'*ones(1,stlen),1,[]) ' ']'*ones(1,3),1,[])),(stable(k,end:-1:1)'-'0')*2+'+');
+        end
+        stable=nstable(:,1:end-1);
+        %print out stable for debugging
+        for k=1:length(stable)
+            fprintf('%s\n',stable(k,:));
+        end
+        
+        %print out table for debugging
+        fprintf('flip %c%i %c%i %c%i\n',table');
+        
         fprintf(ser,'flip -1 -1 -1');
         if ~waitReady(ser,30,true)
             error('Error : Could not communicate with prototype. Check connections');
         end
-        fprintf(ser,'flip +2 +2 +2');
+        pause(1);
+        fprintf(ser,'flip -2 -2 -2');
         if ~waitReady(ser,30,true)
             error('Error : Could not communicate with prototype. Check connections');
         end
+        pause(1);
+        fprintf(ser,'flip +3 +3 +3');
+        if ~waitReady(ser,30,true)
+            error('Error : Could not communicate with prototype. Check connections');
+        end
+        pause(1);
+        fprintf(ser,'flip +4 +4 +4');
+        if ~waitReady(ser,30,true)
+            error('Error : Could not communicate with prototype. Check connections');
+        end
+        pause(1);
         fprintf(ser,'flip +1 +1 +1');
         if ~waitReady(ser,30,true)
             error('Error : Could not communicate with prototype. Check connections');
         end
-        fprintf(ser,'flip -2 -2 -2');
+        pause(1);
+        fprintf(ser,'flip +2 +2 +2');
+        if ~waitReady(ser,30,true)
+            error('Error : Could not communicate with prototype. Check connections');
+        end
+        pause(1);
+        fprintf(ser,'flip -3 -3 -3');
+        if ~waitReady(ser,30,true)
+            error('Error : Could not communicate with prototype. Check connections');
+        end
+        pause(1);
+        fprintf(ser,'flip -4 -4 -4');
         if ~waitReady(ser,30,true)
             error('Error : Could not communicate with prototype. Check connections');
         end
@@ -99,103 +212,20 @@ function [cor,meas,Bs,tlen]=tCal(mag_axis,com,baud,gain,ADCgain)
         theta=linspace(0,8*pi,120);
         Bs=1/30*[theta.*sin(theta);theta.*cos(theta);0*theta];
         
-        
-        p='+';
-        m='-';
-        z='0';
-        table=[                     %+- +- +- 
-               p 2 z 0 z 0;         %++ +- +-
-               m 1 z 0 z 0;         %-+ +- +-
-               m 2 z 0 z 0;         %-- +- +-
-               p 1 p 2 z 0;         %+- ++ +-
-                
-               p 2 z 0 z 0;         %++ ++ +-
-               m 1 z 0 z 0;         %-+ ++ +-
-               m 2 z 0 z 0;         %-- ++ +-
-               p 1 m 1 z 0;         %+- -+ +-
-               
-               p 2 z 0 z 0;         %++ -+ +-
-               m 1 z 0 z 0;         %-+ -+ +-
-               m 2 z 0 z 0;         %-- -+ +-
-               p 1 m 2 z 0;         %+- -- +-
-               
-               p 2 z 0 z 0;         %++ -- +-
-               m 1 z 0 z 0;         %-+ -- +-
-               m 2 z 0 z 0;         %-- -- +-
-               p 1 p 1 p 2;         %+- +- ++
-               
-               
-               p 2 z 0 z 0;         %++ +- ++
-               m 1 z 0 z 0;         %-+ +- ++
-               m 2 z 0 z 0;         %-- +- ++
-               p 1 p 2 z 0;         %+- ++ ++
-               
-               p 2 z 0 z 0;         %++ ++ ++
-               m 1 z 0 z 0;         %-+ +- ++
-               m 2 z 0 z 0;         %-- +- ++
-               p 1 m 1 z 0;         %+- -+ ++
-               
-               p 2 z 0 z 0;         %++ -+ ++
-               m 1 z 0 z 0;         %-+ -+ ++
-               m 2 z 0 z 0;         %-- -+ ++
-               p 1 m 2 z 0;         %+- -- ++
-               
-               p 2 z 0 z 0;         %++ -- ++ 
-               m 1 z 0 z 0;         %-+ -- ++
-               m 2 z 0 z 0;         %-- -- ++
-               p 1 p 1 m 1;         %+- +- -+
-               
-               
-               p 2 z 0 z 0;         %++ +- -+
-               m 1 z 0 z 0;         %-+ +- -+
-               m 2 z 0 z 0;         %-- +- -+
-               p 1 p 2 z 0;         %+- ++ -+
-               
-               p 2 z 0 z 0;         %++ ++ -+
-               m 1 z 0 z 0;         %-+ ++ -+
-               m 2 z 0 z 0;         %-- ++ -+
-               p 1 m 1 z 0;         %+- -+ -+
-               
-               p 2 z 0 z 0;         %++ -+ -+
-               m 1 z 0 z 0;         %-+ -+ -+
-               m 2 z 0 z 0;         %-- -+ -+
-               p 1 m 2 z 0;         %+- -- -+
-               
-               p 2 z 0 z 0;         %++ -- -+
-               m 1 z 0 z 0;         %-+ -- -+
-               m 2 z 0 z 0;         %-- -- -+
-               p 1 p 1 m 2;         %+- +- --
-               
-               
-               p 2 z 0 z 0;         %++ +- --
-               m 1 z 0 z 0;         %-+ +- --
-               m 2 z 0 z 0;         %-- +- --
-               p 1 p 2 z 0;         %+- ++ --
-               
-               p 2 z 0 z 0;         %++ ++ --
-               m 1 z 0 z 0;         %-+ ++ --
-               m 2 z 0 z 0;         %-- ++ --
-               p 1 m 1 z 0;         %+- -+ --
-               
-               p 2 z 0 z 0;         %++ -+ --
-               m 1 z 0 z 0;         %-+ -+ --
-               m 2 z 0 z 0;         %-- -+ --
-               p 1 m 2 z 0;         %+- -- --
-               
-               p 2 z 0 z 0;         %++ -- --
-               m 1 z 0 z 0;         %-+ -- --
-               m 2 z 0 z 0;         %-- -- --
-               p 1 p 1 p 1;         %+- +- +-
-               
-               ];
-             
         %allocate for sensor
         sensor=zeros(size(Bs).*[1 length(table)]);
         %allocate for prototype
         meas=zeros(size(Bs).*[1 length(table)]);
         
+        %get torquer status
+        fprintf(ser,'statcode');
+        %get echoed line
+        fgetl(ser);
+        %get status line
+        stline=fgetl(ser); 
+        
         %set index to initialized state
-        idx=stat2Idx('B +- +- +- 0 0 0');
+        idx=stat2Idx(stline,stable);
         %check for error parsing stat
         if(isnan(idx))
             error('Failed to parse torquer status B +- +- +- 0 0 0');
@@ -258,7 +288,7 @@ function [cor,meas,Bs,tlen]=tCal(mag_axis,com,baud,gain,ADCgain)
             plot(Bs(1,:),Bs(2,:),'r',magScale*meas(1,rng),magScale*meas(2,rng),'g');
             axis('equal');
             %parse index
-            idx=stat2Idx(line);
+            idx=stat2Idx(line,stable);
             %check for error parsing stat
             if(isnan(idx))
                 error('Failed to parse torquer status %s',line(1:end-1));
@@ -372,4 +402,88 @@ function asyncClose(sobj)
     waitReady(sobj,5);
     %print for debugging
     %fprintf('async Closed\n');
+end
+
+function [stat]=stat_strip(line)
+    stsx=sscanf(line,'%[+-] %*[+-] %*[+-] %*i %*i %*i');
+    stsy=sscanf(line,'%*[+-] %[+-] %*[+-] %*i %*i %*i');
+    stsz=sscanf(line,'%*[+-] %*[+-] %[+-] %*i %*i %*i');
+    %get lengths of each status
+    lx=length(stsx);
+    ly=length(stsy);
+    lz=length(stsz);
+    %check if status was read
+    if(lx==0)
+        error('Failed to parse status from line ''%s''',line);
+    end
+    %check lengths
+    if(lx~=ly || ly~=lz)
+        error('Inconsistant status lengths %i %i %i',lx,ly,lz);
+    end
+    %reformat status
+    stat=sprintf('%s %s %s',stsx,stsy,stsz);
+end
+
+function [dat]=stat_dat(line)
+    stsx=sscanf(line,'%[+-] %*[+-] %*[+-] %*i %*i %*i');
+    stsy=sscanf(line,'%*[+-] %[+-] %*[+-] %*i %*i %*i');
+    stsz=sscanf(line,'%*[+-] %*[+-] %[+-] %*i %*i %*i');
+    %get lengths of each status
+    lx=length(stsx);
+    ly=length(stsy);
+    lz=length(stsz);
+    %check if status was read
+    if(lx==0)
+        error('Failed to parse status from line ''%s''',line);
+    end
+    %check lengths
+    if(lx~=ly || ly~=lz)
+        error('Inconsistant status lengths %i %i %i',lx,ly,lz);
+    end
+    stsx=reshape(stsx,1,[]);
+    stsy=reshape(stsy,1,[]);
+    stsz=reshape(stsz,1,[]);
+    %reformat status
+    dat=[stsx;stsy;stsz];
+end
+function [len]=stat_length(line)
+    lx=length(sscanf(line,'%[+-] %*[+-] %*[+-] %*i %*i %*i'));
+    ly=length(sscanf(line,'%*[+-] %[+-] %*[+-] %*i %*i %*i'));
+    lz=length(sscanf(line,'%*[+-] %*[+-] %[+-] %*i %*i %*i'));
+    %check if status was read
+    if(lx==0)
+        error('Failed to parse status from line ''%s''',line);
+    end
+    %make sure lenghts are consistant
+    if(lx~=ly || ly~=lz)
+        error('Inconsistant status lengths %i %i %i',lx,ly,lz);
+    end
+    len=lx;
+end
+
+function idx=stat2Idx(stat,table)
+    %strip status info
+    stat=stat_strip(stat);
+    %find stat in table
+    idx=find(all(ones(length(table),1)*stat==table,2),1,'first');
+    %check if index was found
+    if(isempty(idx))
+        idx=NaN;
+    end
+end
+
+function table=graycode(n)
+    if(n<=0 || round(n)~=n)
+        error('n must be a positive whole number');
+    end
+    if(n>20)
+        error('That''''s a large n did you really want such a big graycode table?');
+    end
+    if(n==1)
+        table=['0';'1'];
+        return
+    end
+    table=graycode(n-1);
+    tmp=table(end:-1:1,:);
+    table=[['0'*ones(2^(n-1),1),table];['1'*ones(2^(n-1),1),tmp]];
 end
