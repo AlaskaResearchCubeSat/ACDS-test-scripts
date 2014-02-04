@@ -52,8 +52,7 @@ function [cor,meas,Bs,tlen]=tCal(mag_axis,com,baud,gain,ADCgain)
         %set to machine readable opperation
         %fprintf(ser,'output machine');
         %connect to ACDS board
-        fprintf(ser,'async ACDS');
-        pause(1);
+        asyncOpen(ser,'ACDS');
         %only show error messages
         fprintf(ser,'log error');
         if ~waitReady(ser,30)
@@ -209,11 +208,10 @@ function [cor,meas,Bs,tlen]=tCal(mag_axis,com,baud,gain,ADCgain)
             %give extra settaling time
             pause(1);
             
-            %print ^C to exit async connection
-            fprintf(ser,03);
-            %clear buffer
-            fgetl(ser);
-            fgetl(ser);
+            %exit async connection
+            asyncClose(ser);
+            
+            pause(1);
 
             for k=1:length(Bs)
                 cc.Bs=Bs(:,k);
@@ -244,9 +242,7 @@ function [cor,meas,Bs,tlen]=tCal(mag_axis,com,baud,gain,ADCgain)
             end
             
             %connect to ACDS board
-            fprintf(ser,'async ACDS');
-            %wait a bit
-            pause(1);
+            asyncOpen(ser,'ACDS');
             %clear buffer
             if(ser.BytesAvailable)
                 fread(ser,ser.BytesAvailable);
@@ -307,8 +303,8 @@ function [cor,meas,Bs,tlen]=tCal(mag_axis,com,baud,gain,ADCgain)
     end
     if exist('ser','var')
         if strcmp(ser.Status,'open')
-            %print Q to stop simulation
-            fprintf(ser,'Q');
+            %print ^c to stop simulation
+            fprintf(ser,'%c',03);
             while ser.BytesToOutput
             end
             fclose(ser);
@@ -343,4 +339,37 @@ function [success]=waitReady(sobj,timeout,output)
         end
     end
     success=true;
+end
+
+function asyncOpen(sobj,sys)
+    timeout = 5;
+    %wmsg='async open use ^C to force quit';
+    wmsg='Using Address 0x12';
+    fprintf(sobj,'async %s\n',sys);
+    msg=[];
+    m=fgetl(sobj);
+    %fprintf('%s',m);
+    while ~strncmp(wmsg,msg,length(wmsg)) && timeout>0
+        msg=fgetl(sobj);
+        %fprintf('%s',msg);
+        if(strncmpi('Error',msg,length('Error')))
+            error(msg);
+        end
+        timeout=timeout-1;
+    end
+end
+
+function asyncClose(sobj)
+    %get number of bytes in buffer
+    n=sobj.BytesAvailable;
+    if(n)
+        %read all bytes
+        fread(sobj,n);
+    end
+    %send ^C
+    fprintf(sobj,'%c',03);
+    %wait for completion
+    waitReady(sobj,5);
+    %print for debugging
+    %fprintf('async Closed\n');
 end
