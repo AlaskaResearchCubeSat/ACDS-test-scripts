@@ -36,8 +36,16 @@ function [flips,stat,stat_index]=tCalTst(stable,mag_axis,cor,com,baud,gain,ADCga
         ser=serial(com,'BaudRate',baud);
         %set timeout to 15s
         set(ser,'Timeout',15);
+        
+        %setup recording for debugging
+        ser.RecordName='tCalTst-debug.txt';
+        ser.RecordMode='overwrite';
+        ser.RecordDetail='verbose';
+        
         %open port
         fopen(ser);
+        %start recording
+        record(ser,'on');
 
         %disable terminator
         set(ser,'Terminator','');
@@ -328,6 +336,7 @@ function [flips,stat,stat_index]=tCalTst(stable,mag_axis,cor,com,baud,gain,ADCga
         path(oldp);
     catch err
         if exist('ser','var')
+            record(ser,'off');
             if strcmp(ser.Status,'open')
                 fclose(ser);
             end
@@ -344,6 +353,7 @@ function [flips,stat,stat_index]=tCalTst(stable,mag_axis,cor,com,baud,gain,ADCga
             fprintf(ser,'Q');
             while ser.BytesToOutput
             end
+            record(ser,'off');
             fclose(ser);
         end
         delete(ser);
@@ -373,7 +383,7 @@ function [success]=waitReady(sobj,timeout,output)
             count=count+1;
             continue;
         end
-        [msg,~,~]=fread(sobj,len);
+        [msg,~,~]=fread(sobj,len,'char');
         if output
             fprintf('%s\n',char(msg'));
         end
@@ -404,7 +414,7 @@ function asyncClose(sobj)
     n=sobj.BytesAvailable;
     if(n)
         %read all bytes
-        fread(sobj,n);
+        fread(sobj,n,'char');
     end
     %send ^C
     fprintf(sobj,'%c',03);
