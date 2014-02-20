@@ -200,7 +200,7 @@ function [flips,stat,stat_index]=tCalTst(stable,mag_axis,cor,com,baud,gain,ADCga
                 %get line for status
                 stline=fgetl(ser);
                 %save status
-                stat{k/10}=line(1:end-1);
+                stat{k/10}=stline(1:end-1);
                 %parse status
                 try
                     idx=stat2Idx(stline,stable);
