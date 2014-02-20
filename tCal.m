@@ -465,14 +465,11 @@ end
 
 function idx=stat2Idx(stat,table)
     %strip status info
-    stat=stat_strip(stat);
-    %find stat in table
-    idx=find(all(ones(length(table),1)*stat==table,2),1,'first');
-    %check if index was found
-    if(isempty(idx))
-        idx=NaN;
-    end
-end    
+    stat=stat_dat(stat);
+    %only include the z-axis
+    idx=sum((('-'-stat(3,:))/2).*2.^(1:4))+1;
+end
+ 
 
       
 function [cmd]=command(sobj,cmd,varargin)
