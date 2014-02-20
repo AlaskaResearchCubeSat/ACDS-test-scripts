@@ -428,7 +428,7 @@ function [stat]=stat_strip(line)
     end
     %check lengths
     if(lx~=ly || ly~=lz)
-        error('Inconsistant status lengths %i %i %i',lx,ly,lz);
+        error('Inconsistant status lengths %i %i %i while parsing ''%s''',lx,ly,lz,line);
     end
     %reformat status
     stat=sprintf('%s %s %s',stsx,stsy,stsz);
@@ -448,7 +448,7 @@ function [dat]=stat_dat(line)
     end
     %check lengths
     if(lx~=ly || ly~=lz)
-        error('Inconsistant status lengths %i %i %i',lx,ly,lz);
+        error('Inconsistant status lengths %i %i %i while parsing ''%s''',lx,ly,lz,line);
     end
     stsx=reshape(stsx,1,[]);
     stsy=reshape(stsy,1,[]);
@@ -456,6 +456,7 @@ function [dat]=stat_dat(line)
     %reformat status
     dat=[stsx;stsy;stsz];
 end
+
 function [len]=stat_length(line)
     lx=length(sscanf(line,'%[+-] %*[+-] %*[+-] %*i %*i %*i'));
     ly=length(sscanf(line,'%*[+-] %[+-] %*[+-] %*i %*i %*i'));
@@ -466,7 +467,7 @@ function [len]=stat_length(line)
     end
     %make sure lenghts are consistant
     if(lx~=ly || ly~=lz)
-        error('Inconsistant status lengths %i %i %i',lx,ly,lz);
+        error('Inconsistant status lengths %i %i %i while parsing ''%s''',lx,ly,lz,line);
     end
     len=lx;
 end
