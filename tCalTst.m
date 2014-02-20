@@ -301,19 +301,11 @@ function [flips,stat,stat_index]=tCalTst(stable,mag_axis,cor,com,baud,gain,ADCga
         ylabel('Error [Gauss]');
         
         sn=10*(1:length(stat));
-        tstat=zeros(6,length(stat));
+        tstat=zeros(stlen*3,length(stat));
         %parse torquer statuses
         for k=1:length(stat)
-            s=sscanf(stat{k},'%s %s %s %s %i %i %i  ',10);
-            for kk=1:6
-                if s(kk+1)=='+'
-                    tstat(kk,k)=1;
-                elseif s(kk+1)=='-'
-                    tstat(kk,k)=-1;
-                else
-                    tstat(kk,k)=NaN;
-                end
-            end
+            s=stat_dat(stat{k});
+            tstat(:,k)=reshape((s-'+')/2,[],1);
         end
         %plot for torquer status
         s2=subplot(2,1,2);
