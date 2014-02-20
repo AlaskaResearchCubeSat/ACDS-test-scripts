@@ -1,4 +1,4 @@
-function [cor,meas,Bs,tlen]=tCal(mag_axis,com,baud,gain,ADCgain,a)
+function [cor,meas,Bs,tlen,stable]=tCal(mag_axis,com,baud,gain,ADCgain,a)
     %calibrate torquers and magnetomitor using helmholtz cage. Connects to
     %ACDS board using async connection to sensor proxy
     if(~exist('baud','var') || isempty(baud))
