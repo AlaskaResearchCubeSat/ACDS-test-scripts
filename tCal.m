@@ -47,9 +47,7 @@ function [cor,meas,Bs,tlen,stable]=tCal(mag_axis,com,baud,gain,ADCgain,a)
         set(ser,'Terminator','LF');
         
          %set ADC gain for magnetomitor
-        fprintf(ser,sprintf('gain %i',ADCgain));
-        %get echoed line
-        fgetl(ser);
+        command(ser,'gain %i',ADCgain);
         %get output line
         gs=fgetl(ser);
         %make sure that gain is correct
@@ -61,31 +59,30 @@ function [cor,meas,Bs,tlen,stable]=tCal(mag_axis,com,baud,gain,ADCgain,a)
         end
         
         %set to machine readable opperation
-        %fprintf(ser,'output machine');
+        %command(ser,'output machine');
         %connect to ACDS board
         asyncOpen(ser,'ACDS');
         %only show error messages
-        fprintf(ser,'log error');
+        command(ser,'log error');
         if ~waitReady(ser,30)
             error('Error : Could not communicate with prototype. Check connections');
         end
         %use machine readable output
-        fprintf(ser,'output machine');
+        command(ser,'output machine');
         if ~waitReady(ser,30)
             error('Error : Could not communicate with prototype. Check connections');
         end
       
         %initialize torquers to a known state
-        fprintf(ser,'init');
+        command(ser,'init');
         
         if ~waitReady(ser,30)
             error('Error : Could not communicate with prototype. Check connections');
         end
         
         %get torquer status
-        fprintf(ser,'statcode');
-        %get echoed line
-        fgetl(ser);
+        command(ser,'statcode');
+        
         %get status line
         stline=fgetl(ser); 
         %strip out status
@@ -172,42 +169,42 @@ function [cor,meas,Bs,tlen,stable]=tCal(mag_axis,com,baud,gain,ADCgain,a)
         %print out table for debugging
         fprintf('flip %c%i %c%i %c%i\n',table');
         
-        fprintf(ser,'flip -1 -1 -1');
+        command(ser,'flip -1 -1 -1');
         if ~waitReady(ser,30,true)
             error('Error : Could not communicate with prototype. Check connections');
         end
         pause(1);
-        fprintf(ser,'flip -2 -2 -2');
+        command(ser,'flip -2 -2 -2');
         if ~waitReady(ser,30,true)
             error('Error : Could not communicate with prototype. Check connections');
         end
         pause(1);
-        fprintf(ser,'flip +3 +3 +3');
+        command(ser,'flip +3 +3 +3');
         if ~waitReady(ser,30,true)
             error('Error : Could not communicate with prototype. Check connections');
         end
         pause(1);
-        fprintf(ser,'flip +4 +4 +4');
+        command(ser,'flip +4 +4 +4');
         if ~waitReady(ser,30,true)
             error('Error : Could not communicate with prototype. Check connections');
         end
         pause(1);
-        fprintf(ser,'flip +1 +1 +1');
+        command(ser,'flip +1 +1 +1');
         if ~waitReady(ser,30,true)
             error('Error : Could not communicate with prototype. Check connections');
         end
         pause(1);
-        fprintf(ser,'flip +2 +2 +2');
+        command(ser,'flip +2 +2 +2');
         if ~waitReady(ser,30,true)
             error('Error : Could not communicate with prototype. Check connections');
         end
         pause(1);
-        fprintf(ser,'flip -3 -3 -3');
+        command(ser,'flip -3 -3 -3');
         if ~waitReady(ser,30,true)
             error('Error : Could not communicate with prototype. Check connections');
         end
         pause(1);
-        fprintf(ser,'flip -4 -4 -4');
+        command(ser,'flip -4 -4 -4');
         if ~waitReady(ser,30,true)
             error('Error : Could not communicate with prototype. Check connections');
         end
@@ -229,9 +226,7 @@ function [cor,meas,Bs,tlen,stable]=tCal(mag_axis,com,baud,gain,ADCgain,a)
         meas=zeros(size(Bs).*[1 length(table)]);
         
         %get torquer status
-        fprintf(ser,'statcode');
-        %get echoed line
-        fgetl(ser);
+        command(ser,'statcode');
         %get status line
         stline=fgetl(ser); 
         
@@ -259,11 +254,9 @@ function [cor,meas,Bs,tlen,stable]=tCal(mag_axis,com,baud,gain,ADCgain,a)
                 %pause to let the supply settle
                 pause(0.01);
                 %tell prototype to take a single measurment
-                fprintf(ser,sprintf('mag single %s',mag_axis));
+                command(ser,'mag single %s',mag_axis);
                 %make measurment using sensor
                 sensor(:,k+(idx)*length(Bs))=inva*cc.Bm';
-                %read echoed line
-                fgetl(ser);
                 %read measurments from prototype
                 line=fgetl(ser);
                 try
@@ -289,9 +282,7 @@ function [cor,meas,Bs,tlen,stable]=tCal(mag_axis,com,baud,gain,ADCgain,a)
                 fread(ser,ser.BytesAvailable);
             end
             %flip a torquer
-            fprintf(ser,'flip %c%i %c%i %c%i\n',table(kk,:));
-            %read echoed line
-            fgetl(ser);
+            command(ser,'flip %c%i %c%i %c%i',table(kk,:));
             %read status from prototype
             line=fgetl(ser);
             %plot data with old index
@@ -480,6 +471,41 @@ function idx=stat2Idx(stat,table)
     %check if index was found
     if(isempty(idx))
         idx=NaN;
+    end
+end    
+
+      
+function [cmd]=command(sobj,cmd,varargin)
+    %first flush buffer    
+    %get number of bytes in buffer
+    n=sobj.BytesAvailable;
+    if(n)
+        %read all bytes
+        fread(sobj,n,'char');
+    end
+    %generate command
+    cmd=sprintf(cmd,varargin{:});
+    %send command
+    fprintf(sobj,'%s\n',cmd);
+    %get line for echo
+    line=fgetl(sobj);
+    num=5;
+    %number of retries
+    ntry=0;
+    %maximum number of retries
+    maxtry=2;
+    while ~strcmp(cmd,line(1:end-1))
+        num=num-1;
+        if num==0
+            if ntry<maxtry
+                ntry=ntry+1;
+                %send command again
+                fprintf(sobj,'%s\n',cmd);
+            else
+                error('Command ''%s'' failed. Echo : ''%s''',cmd,line(1:end-1));
+            end
+        end
+        line=fgetl(sobj);
     end
 end
 

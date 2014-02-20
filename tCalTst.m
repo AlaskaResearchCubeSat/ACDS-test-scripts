@@ -154,10 +154,8 @@ function [flips,stat,stat_index]=tCalTst(stable,mag_axis,cor,com,baud,gain,ADCga
             %pause to let the supply settle
             pause(0.01);
             %tell prototype to take a single measurment
-            fprintf(ser,sprintf('mag single %s',mag_axis));
+            command(ser,sprintf('mag single %s',mag_axis));
             %make measurment using sensor
-            %read echoed line
-            fgetl(ser);
             sensor(:,k)=inva*cc.Bm';
             %read measurments from prototype
             line=fgetl(ser);
@@ -185,17 +183,20 @@ function [flips,stat,stat_index]=tCalTst(stable,mag_axis,cor,com,baud,gain,ADCga
                 end
                 %connect to ACDS board
                 asyncOpen(ser,'ACDS');
-               
+                pause(2);
                 [tqx,dirx]=random_flip(tqstat(:,1));
                 [tqy,diry]=random_flip(tqstat(:,2));
                 [tqz,dirz]=random_flip(tqstat(:,3));
                 %random torquer flip
-                cmd=sprintf('flip 0 0 %c%i',dirz,tqz);
+                cmd=command(ser,'flip 0 0 %c%i',dirz,tqz);
                 %save flips
                 flips{k/10}=cmd;
-                fprintf(ser,'%s\n',cmd);
-                %get line for echo
-                fgetl(ser);
+                if ~waitReady(ser,30)
+                    error('Prototype not responding\n');
+                end
+                pause(1);
+                %get torquer status
+                command(ser,'statcode');
                 %get line for status
                 stline=fgetl(ser);
                 %save status
@@ -499,7 +500,41 @@ function [tq,dir]=random_flip(stat)
         end
     end
 end
-        
+      
+function [cmd]=command(sobj,cmd,varargin)
+    %first flush buffer    
+    %get number of bytes in buffer
+    n=sobj.BytesAvailable;
+    if(n)
+        %read all bytes
+        fread(sobj,n,'char');
+    end
+    %generate command
+    cmd=sprintf(cmd,varargin{:});
+    %send command
+    fprintf(sobj,'%s\n',cmd);
+    %get line for echo
+    line=fgetl(sobj);
+    num=5;
+    %number of retries
+    ntry=0;
+    %maximum number of retries
+    maxtry=2;
+    while ~strcmp(cmd,line(1:end-1))
+        num=num-1;
+        if num==0
+            if ntry<maxtry
+                ntry=ntry+1;
+                %send command again
+                fprintf(sobj,'%s\n',cmd);
+            else
+                error('Command ''%s'' failed. Echo : ''%s''',cmd,line(1:end-1));
+            end
+        end
+        line=fgetl(sobj);
+    end
+end
+
 
 function idx=stat2Idx(stat,table)
     %strip status info
