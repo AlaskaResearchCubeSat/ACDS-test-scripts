@@ -467,7 +467,7 @@ function idx=stat2Idx(stat,table)
     %strip status info
     stat=stat_dat(stat);
     %only include the z-axis
-    idx=sum((('-'-stat(3,:))/2).*2.^(1:4))+1;
+    idx=sum((('-'-stat(3,:))/2).*2.^(0:3))+1;
 end
  
 
