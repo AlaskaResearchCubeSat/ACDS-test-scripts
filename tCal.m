@@ -1,4 +1,4 @@
-function [cor,meas,Bs,tlen,stable]=tCal(mag_axis,com,baud,gain,ADCgain,a)
+function [cor,meas,Bs,tlen]=tCal(mag_axis,com,baud,gain,ADCgain,a)
     %calibrate torquers and magnetomitor using helmholtz cage. Connects to
     %ACDS board using async connection to sensor proxy
     if(~exist('baud','var') || isempty(baud))
@@ -231,7 +231,7 @@ function [cor,meas,Bs,tlen,stable]=tCal(mag_axis,com,baud,gain,ADCgain,a)
         stline=fgetl(ser); 
         
         %set index to initialized state
-        idx=stat2Idx(stline,stable);
+        idx=stat2Idx(stline);
         %check for error parsing stat
         if(isnan(idx))
             error('Failed to parse torquer status B +- +- +- 0 0 0');
@@ -290,7 +290,7 @@ function [cor,meas,Bs,tlen,stable]=tCal(mag_axis,com,baud,gain,ADCgain,a)
             plot(Bs(1,:),Bs(2,:),'r',magScale*meas(1,rng),magScale*meas(2,rng),'g');
             axis('equal');
             %parse index
-            idx=stat2Idx(line,stable);
+            idx=stat2Idx(line);
             %check for error parsing stat
             if(isnan(idx))
                 error('Failed to parse torquer status %s',line(1:end-1));
@@ -463,7 +463,7 @@ function [len]=stat_length(line)
     len=lx;
 end
 
-function idx=stat2Idx(stat,table)
+function idx=stat2Idx(stat)
     %strip status info
     stat=stat_dat(stat);
     %only include the z-axis

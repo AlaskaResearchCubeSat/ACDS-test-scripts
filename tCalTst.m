@@ -1,9 +1,6 @@
-function [flips,stat,stat_index]=tCalTst(stable,mag_axis,cor,com,baud,gain,ADCgain,a)
+function [flips,stat,stat_index]=tCalTst(mag_axis,cor,com,baud,gain,ADCgain,a)
     if(nargin<3)
         baud=57600;
-    end
-    if(~exist('stable','var') || isempty(stable))
-        error('stable must be given')
     end
     if(~exist('mag_axis','var') || isempty(mag_axis))
         mag_axis='';
@@ -203,7 +200,7 @@ function [flips,stat,stat_index]=tCalTst(stable,mag_axis,cor,com,baud,gain,ADCga
                 stat{k/10}=stline(1:end-1);
                 %parse status
                 try
-                    idx=stat2Idx(stline,stable);
+                    idx=stat2Idx(stline);
                     %save index
                     stat_index(k/10)=idx;
                     curOS=cor(3+idx,:);
@@ -528,7 +525,7 @@ function [cmd]=command(sobj,cmd,varargin)
 end
 
 
-function idx=stat2Idx(stat,table)
+function idx=stat2Idx(stat)
     %strip status info
     stat=stat_dat(stat);
     %only include the z-axis
