@@ -97,25 +97,15 @@ function [cor,meas,Bs,tlen]=tCal(mag_axis,com,baud,gain,ADCgain,a)
         tmp=tmp(:,end:-1:1);
         tmp=char(reshape(tmp',1,[]));
         
-        if 0
-            %generate table for all states
-            %generate status table from graycode values
-            stable=graycode(3*stlen);
-            %find starting index
-            k=find(all(char(ones(length(stable),1)*tmp)==stable,2));
-            %rotate table so that k is first
-            stable=stable(mod((k:(k+length(stable)))-1,length(stable))+1,:);
-        else
-            %generate a table for only flipping Z-axis torquers
-            %generate partial status table from graycode values
-            stable=graycode(stlen);
-            %find starting index
-            k=find(all(char(ones(length(stable),1)*tmp(1:4))==stable,2));
-            %rotate table so that k is first
-            stable=stable(mod((k:(k+length(stable)))-1,length(stable))+1,:);
-            %add extra status bits
-            stable=[stable,ones(length(stable),1)*tmp(5:12)];
-        end
+        %generate a table for only flipping torquers in the given axis
+        %generate partial status table from graycode values
+        stable=graycode(stlen);
+        %find starting index
+        k=find(all(char(ones(length(stable),1)*tmp(1:stlen))==stable,2));
+        %rotate table so that k is first
+        stable=stable(mod((k:(k+length(stable)))-1,length(stable))+1,:);
+        %add extra status bits
+        stable=[stable,ones(length(stable),1)*tmp(5:12)];
         
         %initialize flip table
         table=zeros(length(stable),6);
