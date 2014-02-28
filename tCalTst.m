@@ -26,6 +26,32 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,cor,com,baud,gain,ADCgain,a)
         %calculate inverse to correct for measurments
         inva=inv(a);
     end
+    
+    %setup magnetic field
+    theta=linspace(0,2*pi,500);
+    %Bs=1*[sin(theta);cos(theta);0*theta];
+    %d=2;
+    %ec=0.5;
+    %Bs=0.1*[d./(1+ec*cos(theta)).*sin(theta);d./(1+ec*cos(theta)).*cos(theta);0*theta];
+
+    Bs=0.3*(1.5-[1;1;0]*cos(10*theta)).*[sin(theta);cos(theta);0*theta];
+
+
+    %theta=linspace(0,8*pi,300);
+    %Bs=1/30*[theta.*sin(theta);theta.*cos(theta);0*theta];
+
+    %allocate for sensor
+    sensor=zeros(size(Bs));
+    %allocate for prototype
+    meas=zeros(size(Bs));
+    
+    Xc=zeros(1,length(Bs));
+    Yc=zeros(1,length(Bs));
+
+    flips=cell(floor(length(Bs)/10)+1,1);
+    stat=cell(floor(length(Bs)/10)+1,1);
+    stat_index=zeros(floor(length(Bs)/10)+1,1);
+
     try
         cc=cage_control();
         cc.loadCal('calibration.cal');
@@ -72,12 +98,6 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,cor,com,baud,gain,ADCgain,a)
         fprintf(ser,'output machine');
         
         pause(1);
-        %initialize torquers to a known state
-        fprintf(ser,'init');
-        
-        if ~waitReady(ser,30)
-            error('Error : Could not communicate with prototype. Check connections');
-        end
         
         %set the ACDS to only print messages for errors
         fprintf(ser,'log error');
@@ -85,18 +105,32 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,cor,com,baud,gain,ADCgain,a)
         if ~waitReady(ser,30)
             error('Error : Could not communicate with prototype. Check connections');
         end
+        pause(1);
         
         %get torquer status
-        fprintf(ser,'statcode');
-        %get echoed line
-        fgetl(ser);
+        command(ser,'statcode');
         %get status line
         stline=fgetl(ser); 
-        %strip out status
-        tqstat=stat_dat(stline);
+        %get length of status info
         stlen=stat_length(stline);
         
-        
+        %save status
+        stat{1}=stline(1:end-1);
+        %parse status
+        try
+            idx=stat2Idx(stline);
+            %save index
+            stat_index(1)=idx;
+            curOS=cor(3+idx,:);
+            %parse current status
+            tqstat=stat_dat(stline);
+        catch err
+            fprintf(2,'Error : Could not parse torquer status \"%s\"\n',stline(1:end-1));
+            rethrow(err);
+        end
+        if ~waitReady(ser,30)
+            error('Prototype not responding\n');
+        end
         %exit async connection
         asyncClose(ser);
         
@@ -107,45 +141,11 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,cor,com,baud,gain,ADCgain,a)
          %   error('Error : Could not communicate with prototype. Check connections');
         %end
         
-        theta=linspace(0,2*pi,500);
-        %Bs=1*[sin(theta);cos(theta);0*theta];
-        %d=2;
-        %ec=0.5;
-        %Bs=0.1*[d./(1+ec*cos(theta)).*sin(theta);d./(1+ec*cos(theta)).*cos(theta);0*theta];
-        
-        Bs=0.3*(1.5-[1;1;0]*cos(10*theta)).*[sin(theta);cos(theta);0*theta];
-        
-        
-        %theta=linspace(0,8*pi,300);
-        %Bs=1/30*[theta.*sin(theta);theta.*cos(theta);0*theta];
-        
-        
-        %torquer flip array
-        tq={'0' '+1' '+2';
-            '0' '+1' '-2';
-            '0' '+2' '-1' ;
-            '0' '-1' '-2'};
-        
-        %allocate for sensor
-        sensor=zeros(size(Bs));
-        %allocate for prototype
-        meas=zeros(size(Bs));
         %set initial field
         cc.Bs=a*Bs(:,1);
         %give extra settaling time
         pause(1);
-        
-        %current torquer field offset
-        curOS=cor(3,:);
-        
-        Xc=zeros(1,length(Bs));
-        Yc=zeros(1,length(Bs));
-        
-        flips=cell(floor(length(Bs)/10),1);
-        stat=cell(floor(length(Bs)/10),1);
-        stat_index=zeros(floor(length(Bs)/10),1);
-        tqs=[1,-1,1,-1,1,-1];
-        
+
         for k=1:length(Bs)
             cc.Bs=a*Bs(:,k);
             %pause to let the supply settle
@@ -181,13 +181,13 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,cor,com,baud,gain,ADCgain,a)
                 %connect to ACDS board
                 asyncOpen(ser,'ACDS');
                 pause(2);
-                [tqx,dirx]=random_flip(tqstat(:,1));
-                [tqy,diry]=random_flip(tqstat(:,2));
-                [tqz,dirz]=random_flip(tqstat(:,3));
+                %[tqx,dirx]=random_flip(tqstat(1,:));
+                %[tqy,diry]=random_flip(tqstat(2,:));
+                [tqz,dirz]=random_flip(tqstat(3,:));
                 %random torquer flip
                 cmd=command(ser,'flip 0 0 %c%i',dirz,tqz);
                 %save flips
-                flips{k/10}=cmd;
+                flips{k/10+1}=cmd;
                 if ~waitReady(ser,30)
                     error('Prototype not responding\n');
                 end
@@ -197,12 +197,12 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,cor,com,baud,gain,ADCgain,a)
                 %get line for status
                 stline=fgetl(ser);
                 %save status
-                stat{k/10}=stline(1:end-1);
+                stat{k/10+1}=stline(1:end-1);
                 %parse status
                 try
                     idx=stat2Idx(stline);
                     %save index
-                    stat_index(k/10)=idx;
+                    stat_index(k/10+1)=idx;
                     curOS=cor(3+idx,:);
                     %parse current status
                     tqstat=stat_dat(stline);
@@ -297,25 +297,24 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,cor,com,baud,gain,ADCgain,a)
         xlabel('Sample Number');
         ylabel('Error [Gauss]');
         
-        sn=10*(1:length(stat));
+        sn=10*(0:length(stat)-1);
         tstat=zeros(stlen*3,length(stat));
         %parse torquer statuses
         for k=1:length(stat)
             s=stat_dat(stat{k});
-            tstat(:,k)=reshape((s-'+')/2,[],1);
+            tstat(:,k)=reshape((s'-'+')/2,[],1);
         end
+        
         %plot for torquer status
         s2=subplot(2,1,2);
         hold on;
-        stairs(sn,3*tstat(1,:)+4,'r')
-        stairs(sn,3*tstat(2,:)+12,'g')
-        stairs(sn,3*tstat(3,:)+20,'b')
-        stairs(sn,3*tstat(4,:)+28,'m')
-        stairs(sn,3*tstat(5,:)+36,'c')
-        stairs(sn,3*tstat(6,:)+44,'y')
+        stairs(sn,2*tstat( 9,:)+3,'r')
+        stairs(sn,2*tstat(10,:)+6,'g')
+        stairs(sn,2*tstat(11,:)+9,'b')
+        stairs(sn,2*tstat(12,:)+12,'m')
         stairs(sn,stat_index,'k');
         hold off;
-        legend('X1','X2','Y1','Y2','Z1','Z2','Index');
+        legend('Z1','Z2','Z3','Z4','Index');
         %link subplots x-axis
         linkaxes([s1,s2],'x');
         %add functions folder to path
