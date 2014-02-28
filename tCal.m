@@ -234,7 +234,7 @@ function [cor,meas,Bs,tlen]=tCal(mag_axis,com,baud,gain,ADCgain,a)
         idx=stat2Idx(stline);
         %check for error parsing stat
         if(isnan(idx))
-            error('Failed to parse torquer status B +- +- +- 0 0 0');
+            error('Failed to parse torquer status \"%s\"',stline);
         end
            
         for kk=1:length(table)
