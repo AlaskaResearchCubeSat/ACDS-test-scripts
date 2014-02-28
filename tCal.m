@@ -236,7 +236,15 @@ function [cor,meas,Bs,tlen]=tCal(mag_axis,com,baud,gain,ADCgain,a)
         if(isnan(idx))
             error('Failed to parse torquer status \"%s\"',stline);
         end
-           
+        
+        save_idx=zeros(1,length(table));
+        
+        save_stat=cell(1,length(table));
+        
+        save_idx(1)=idx;
+        
+        save_stat{1}=stline;
+        
         for kk=1:length(table)
             fprintf('Starting Calibration %i of %i\n',kk,length(table));
             %set initial field
@@ -291,6 +299,10 @@ function [cor,meas,Bs,tlen]=tCal(mag_axis,com,baud,gain,ADCgain,a)
             axis('equal');
             %parse index
             idx=stat2Idx(line);
+            %save idx
+            save_idx(kk+1)=idx;
+            %save status
+            save_stat{kk+1}=line;
             %check for error parsing stat
             if(isnan(idx))
                 error('Failed to parse torquer status %s',line(1:end-1));
