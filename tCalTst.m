@@ -475,7 +475,7 @@ end
 function [tq,dir]=random_flip(stat)
     l=length(stat);
     tq=randi([0,l]);
-    if l==0
+    if tq==0
         dir='';
     else
         %get current status
@@ -504,16 +504,17 @@ function [cmd]=command(sobj,cmd,varargin)
     fprintf(sobj,'%s\n',cmd);
     %get line for echo
     line=fgetl(sobj);
-    num=5;
+    %number of re-reads
+    num=3;
     %number of retries
-    ntry=0;
-    %maximum number of retries
-    maxtry=2;
+    ntry=2;
     while ~strcmp(cmd,line(1:end-1))
         num=num-1;
-        if num==0
-            if ntry<maxtry
-                ntry=ntry+1;
+        if num<=0
+            if ntry>0
+                ntry=ntry-1;
+                %reset number of reads
+                num=3;
                 %send command again
                 fprintf(sobj,'%s\n',cmd);
             else
