@@ -1,4 +1,4 @@
-function [flips,stat,stat_index]=tCalTst(mag_axis,cor,com,baud,gain,ADCgain,a)
+function [flips,stat,stat_index]=tCalTst(mag_axis,tq_axis,cor,com,baud,gain,ADCgain,a)
     if(nargin<3)
         baud=57600;
     end
@@ -26,7 +26,26 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,cor,com,baud,gain,ADCgain,a)
         %calculate inverse to correct for measurments
         inva=inv(a);
     end
-    
+    if (~exist('tq_axis','var') || isempty(tq_axis))
+        tq_axis=3;
+    else
+        if isa(tq_axis,'char')
+            switch tq_axis
+                case 'X'
+                    tq_axis=1;
+                case 'Y'
+                    tq_axis=2;
+                case 'Z'
+                    tq_axis=3;
+                otherwise
+                    error('Unknown torquer axis ''%s''.',tq_axis);
+            end
+        else
+            if tq_axis<1 || tq_axis>3
+                error('Invalid value for tq_axis ''%s''.',tq_axis);
+            end
+        end
+    end
     %setup magnetic field
     theta=linspace(0,2*pi,500);
     %Bs=1*[sin(theta);cos(theta);0*theta];
@@ -118,7 +137,7 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,cor,com,baud,gain,ADCgain,a)
         stat{1}=stline(1:end-1);
         %parse status
         try
-            idx=stat2Idx(stline);
+            idx=stat2Idx(stline,tq_axis);
             %save index
             stat_index(1)=idx;
             curOS=cor(3+idx,:);
@@ -181,11 +200,28 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,cor,com,baud,gain,ADCgain,a)
                 %connect to ACDS board
                 asyncOpen(ser,'ACDS');
                 pause(2);
-                %[tqx,dirx]=random_flip(tqstat(1,:));
-                %[tqy,diry]=random_flip(tqstat(2,:));
-                [tqz,dirz]=random_flip(tqstat(3,:));
+                switch(tq_axis)
+                    case 1
+                        [tqx,dirx]=random_flip(tqstat(1,:));
+                        diry='';
+                        tqy=0;
+                        dirz='';
+                        tqz=0;
+                    case 2
+                        dirx='';
+                        tqx=0;
+                        [tqy,diry]=random_flip(tqstat(2,:));
+                        dirz='';
+                        tqz=0;
+                    case 3
+                        dirx='';
+                        tqx=0;
+                        diry='';
+                        tqy=0;
+                        [tqz,dirz]=random_flip(tqstat(3,:));
+                end
                 %random torquer flip
-                cmd=command(ser,'flip 0 0 %c%i',dirz,tqz);
+                cmd=command(ser,'flip %c%i %c%i %c%i',dirx,tqx,diry,tqy,dirz,tqz);
                 %save flips
                 flips{k/10+1}=cmd;
                 if ~waitReady(ser,30)
@@ -200,7 +236,7 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,cor,com,baud,gain,ADCgain,a)
                 stat{k/10+1}=stline(1:end-1);
                 %parse status
                 try
-                    idx=stat2Idx(stline);
+                    idx=stat2Idx(stline,tq_axis);
                     %save index
                     stat_index(k/10+1)=idx;
                     curOS=cor(3+idx,:);
@@ -308,13 +344,20 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,cor,com,baud,gain,ADCgain,a)
         %plot for torquer status
         s2=subplot(2,1,2);
         hold on;
-        stairs(sn,2*tstat( 9,:)+3,'r')
-        stairs(sn,2*tstat(10,:)+6,'g')
-        stairs(sn,2*tstat(11,:)+9,'b')
-        stairs(sn,2*tstat(12,:)+12,'m')
+        stairs(sn,2*tstat(stlen*(tq_axis-1)+1,:)+3,'r')
+        stairs(sn,2*tstat(stlen*(tq_axis-1)+2,:)+6,'g')
+        stairs(sn,2*tstat(stlen*(tq_axis-1)+3,:)+9,'b')
+        stairs(sn,2*tstat(stlen*(tq_axis-1)+4,:)+12,'m')
         stairs(sn,stat_index,'k');
         hold off;
-        legend('Z1','Z2','Z3','Z4','Index');
+        switch tq_axis
+            case 1
+                legend('X1','X2','X3','X4','Index');
+            case 2
+                legend('Y1','Y2','Y3','Y4','Index');
+            case 3
+                legend('Z1','Z2','Z3','Z4','Index');
+        end
         %link subplots x-axis
         linkaxes([s1,s2],'x');
         %add functions folder to path
@@ -525,9 +568,9 @@ function [cmd]=command(sobj,cmd,varargin)
 end
 
 
-function idx=stat2Idx(stat)
+function idx=stat2Idx(stat,idx)
     %strip status info
     stat=stat_dat(stat);
     %only include the z-axis
-    idx=sum((('-'-stat(3,:))/2).*2.^(0:3))+1;
+    idx=sum((('-'-stat(idx,:))/2).*2.^(0:3))+1;
 end

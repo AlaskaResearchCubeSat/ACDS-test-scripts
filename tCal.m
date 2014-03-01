@@ -1,4 +1,4 @@
-function [cor,meas,Bs,tlen]=tCal(mag_axis,com,baud,gain,ADCgain,a)
+function [cor,meas,Bs,tlen]=tCal(mag_axis,tq_axis,com,baud,gain,ADCgain,a)
     %calibrate torquers and magnetomitor using helmholtz cage. Connects to
     %ACDS board using async connection to sensor proxy
     if(~exist('baud','var') || isempty(baud))
@@ -15,6 +15,26 @@ function [cor,meas,Bs,tlen]=tCal(mag_axis,com,baud,gain,ADCgain,a)
     end
     if (~exist('ADCgain','var') || isempty(ADCgain))
         ADCgain=64;
+    end
+    if (~exist('tq_axis','var') || isempty(tq_axis))
+        tq_axis=3;
+    else
+        if isa(tq_axis,'char')
+            switch tq_axis
+                case 'X'
+                    tq_axis=1;
+                case 'Y'
+                    tq_axis=2;
+                case 'Z'
+                    tq_axis=3;
+                otherwise
+                    error('Unknown torquer axis ''%s''.',tq_axis);
+            end
+        else
+            if tq_axis<1 || tq_axis>3
+                error('Invalid value for tq_axis ''%s''.',tq_axis);
+            end
+        end
     end
     if(~exist('a','var') || isempty(a))
         %if no transform is given then use unity
@@ -101,11 +121,23 @@ function [cor,meas,Bs,tlen]=tCal(mag_axis,com,baud,gain,ADCgain,a)
         %generate partial status table from graycode values
         stable=graycode(stlen);
         %find starting index
-        k=find(all(char(ones(length(stable),1)*tmp(1:stlen))==stable,2));
+        k=find(all(char(ones(length(stable),1)*tmp(((stlen*(3-tq_axis)):(stlen*(4-tq_axis)-1))+1))==stable,2));
         %rotate table so that k is first
         stable=stable(mod((k:(k+length(stable)))-1,length(stable))+1,:);
-        %add extra status bits
-        stable=[stable,ones(length(stable),1)*tmp(5:12)];
+        switch tq_axis
+            case 1
+                %X-axis
+                %add extra status bits
+                stable=[ones(length(stable),1)*tmp(1:8),stable];
+            case 2
+                %Y-axis
+                %add extra status bits
+                stable=[ones(length(stable),1)*tmp(1:4),stable,ones(length(stable),1)*tmp(9:12)];
+            case 3
+                %Z-axis
+                %add extra status bits
+                stable=[stable,ones(length(stable),1)*tmp(5:12)];
+        end
         
         %initialize flip table
         table=zeros(length(stable),6);
@@ -221,7 +253,7 @@ function [cor,meas,Bs,tlen]=tCal(mag_axis,com,baud,gain,ADCgain,a)
         stline=fgetl(ser); 
         
         %set index to initialized state
-        idx=stat2Idx(stline);
+        idx=stat2Idx(stline,tq_axis);
         %check for error parsing stat
         if(isnan(idx))
             error('Failed to parse torquer status \"%s\"',stline);
@@ -288,7 +320,7 @@ function [cor,meas,Bs,tlen]=tCal(mag_axis,com,baud,gain,ADCgain,a)
             plot(Bs(1,:),Bs(2,:),'r',magScale*meas(1,rng),magScale*meas(2,rng),'g');
             axis('equal');
             %parse index
-            idx=stat2Idx(line);
+            idx=stat2Idx(line,tq_axis);
             %save idx
             save_idx(kk+1)=idx;
             %save status
@@ -465,11 +497,11 @@ function [len]=stat_length(line)
     len=lx;
 end
 
-function idx=stat2Idx(stat)
+function idx=stat2Idx(stat,idx)
     %strip status info
     stat=stat_dat(stat);
     %only include the z-axis
-    idx=sum((('-'-stat(3,:))/2).*2.^(0:3))+1;
+    idx=sum((('-'-stat(idx,:))/2).*2.^(0:3))+1;
 end
  
 
