@@ -41,6 +41,9 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,tq_axis,cor,com,baud,gain,ADCg
                     error('Unknown torquer axis ''%s''.',tq_axis);
             end
         else
+            if size(tq_axis)~=1
+                error('tq_axis must be a scalar.');
+            end
             if tq_axis<1 || tq_axis>3
                 error('Invalid value for tq_axis ''%s''.',tq_axis);
             end
