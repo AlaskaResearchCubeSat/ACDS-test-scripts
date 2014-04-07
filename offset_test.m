@@ -48,7 +48,7 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
         end
         pause(1);
         %initialize torquers to a known state
-        fprintf(ser,'init');
+        fprintf(ser,'reinit');
         
         if ~waitReady(ser,30)
             error('Error : Could not communicate with prototype. Check connections');

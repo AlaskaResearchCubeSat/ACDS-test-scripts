@@ -34,7 +34,7 @@ function tCalTst(cor,com,baud)
         
         pause(1);
         %initialize torquers to a known state
-        fprintf(ser,'init');
+        fprintf(ser,'reinit');
         
         if ~waitReady(ser,30,true)
             error('Error : Could not communicate with prototype. Check connections');

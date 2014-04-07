@@ -97,7 +97,7 @@ function [cor,meas,Bs]=tCal(mag_axis,tq_axis,com,baud,gain,ADCgain,a)
         end
       
         %initialize torquers to a known state
-        command(ser,'init');
+        command(ser,'reinit');
         
         if ~waitReady(ser,30)
             error('Error : Could not communicate with prototype. Check connections');
