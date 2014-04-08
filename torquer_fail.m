@@ -1,4 +1,4 @@
-function torquer_fail(com,baud)
+function torquer_fail(com,baud,num)
     %Flip torquers until an error is encountered. Connects to
     %ACDS board using async connection to sensor proxy
     if(~exist('baud','var') || isempty(baud))
@@ -6,6 +6,9 @@ function torquer_fail(com,baud)
     end
     if(~exist('com','var') || isempty(com))
         com='COM3';
+    end
+    if(~exist('num','var') || isempty(num))
+        num=80000;
     end
     try
         %open serial port
@@ -51,7 +54,7 @@ function torquer_fail(com,baud)
         %check for status errors
         statchk(stat);
         
-        for k=1:80000
+        for k=1:num
             fprintf('Num = %i\n',k);
             %flip a random torquer
             command(ser,'rndt');
