@@ -57,10 +57,17 @@ function [cor,meas,Bs]=tCal(mag_axis,tq_axis,com,baud,gain,ADCgain,a)
         cc.loadCal('calibration.cal');
         %open serial port
         ser=serial(com,'BaudRate',baud);
+        
+        %setup recording for debugging
+        ser.RecordName='tCal-debug.txt';
+        ser.RecordMode='overwrite';
+        ser.RecordDetail='verbose';
        
         %set timeout to 5s
         set(ser,'Timeout',5);        %open port
         fopen(ser);
+        %start recording
+        record(ser,'on');
 
         %disable terminator
         set(ser,'Terminator','');
@@ -113,8 +120,6 @@ function [cor,meas,Bs]=tCal(mag_axis,tq_axis,com,baud,gain,ADCgain,a)
         stlen=stat_length(stline);
         
         initial=stdat;
-        
-        char(initial)
         
         %check for torquer errors
         statchk(stdat);
@@ -196,46 +201,6 @@ function [cor,meas,Bs]=tCal(mag_axis,tq_axis,com,baud,gain,ADCgain,a)
         
         %print out table for debugging
         fprintf('flip %c%i %c%i %c%i\n',table');
-        
-        command(ser,'flip -1 -1 -1');
-        if ~waitReady(ser,30,true)
-            error('Error : Could not communicate with prototype. Check connections');
-        end
-        pause(1);
-        command(ser,'flip -2 -2 -2');
-        if ~waitReady(ser,30,true)
-            error('Error : Could not communicate with prototype. Check connections');
-        end
-        pause(1);
-        command(ser,'flip +3 +3 +3');
-        if ~waitReady(ser,30,true)
-            error('Error : Could not communicate with prototype. Check connections');
-        end
-        pause(1);
-        command(ser,'flip +4 +4 +4');
-        if ~waitReady(ser,30,true)
-            error('Error : Could not communicate with prototype. Check connections');
-        end
-        pause(1);
-        command(ser,'flip +1 +1 +1');
-        if ~waitReady(ser,30,true)
-            error('Error : Could not communicate with prototype. Check connections');
-        end
-        pause(1);
-        command(ser,'flip +2 +2 +2');
-        if ~waitReady(ser,30,true)
-            error('Error : Could not communicate with prototype. Check connections');
-        end
-        pause(1);
-        command(ser,'flip -3 -3 -3');
-        if ~waitReady(ser,30,true)
-            error('Error : Could not communicate with prototype. Check connections');
-        end
-        pause(1);
-        command(ser,'flip -4 -4 -4');
-        if ~waitReady(ser,30,true)
-            error('Error : Could not communicate with prototype. Check connections');
-        end
         
         %theta=linspace(0,2*pi,60);
 
