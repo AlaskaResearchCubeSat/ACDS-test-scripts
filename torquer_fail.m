@@ -16,7 +16,15 @@ function torquer_fail(com,baud,num)
        
         %set timeout to 5s
         set(ser,'Timeout',5);        %open port
+        
+        %setup recording for debugging
+        ser.RecordName='fail-debug.txt';
+        ser.RecordMode='overwrite';
+        ser.RecordDetail='verbose';
+        
         fopen(ser);
+        %start recording
+        record(ser,'on');
 
         %disable terminator
         set(ser,'Terminator','');
