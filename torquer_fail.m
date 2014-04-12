@@ -56,7 +56,7 @@ function torquer_fail(com,baud,num)
         fprintf('%s',stat);
         %wait for command to finish
         if ~waitReady(ser,30)
-            error('Prototype not responding\n');
+            error('Prototype not responding');
         end
         stat=stat_dat(stat);
         %check for status errors
@@ -68,7 +68,7 @@ function torquer_fail(com,baud,num)
             command(ser,'rndt');
             %wait for command to finish
             if ~waitReady(ser,30)
-                error('Prototype not responding\n');
+                error('Prototype not responding');
             end
             
             %get torquer status
@@ -79,7 +79,7 @@ function torquer_fail(com,baud,num)
             fprintf('%s',stat);
             %wait for command to finish
             if ~waitReady(ser,30)
-                error('Prototype not responding\n');
+                error('Prototype not responding');
             end
             
             stat=stat_dat(stat);
