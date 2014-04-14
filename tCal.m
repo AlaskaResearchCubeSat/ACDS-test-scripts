@@ -188,19 +188,19 @@ function [cor,erms]=tCal(mag_axis,tq_axis,com,baud,gain,ADCgain,a)
             end
         end
         
-        nstable=zeros(length(stable),3*(stlen+1));
+        %nstable=zeros(length(stable),3*(stlen+1));
         %convert stable to char representation
-        for k=1:length(stable)
-            nstable(k,:)=sprintf(char(reshape([reshape(('%c')'*ones(1,stlen),1,[]) ' ']'*ones(1,3),1,[])),(stable(k,end:-1:1)'-'0')*2+'+');
-        end
-        stable=nstable(:,1:end-1);
+        %for k=1:length(stable)
+        %    nstable(k,:)=sprintf(char(reshape([reshape(('%c')'*ones(1,stlen),1,[]) ' ']'*ones(1,3),1,[])),(stable(k,end:-1:1)'-'0')*2+'+');
+        %end
+        %stable=nstable(:,1:end-1);
         %print out stable for debugging
-        for k=1:length(stable)
-            fprintf('%s\n',stable(k,:));
-        end
+        %for k=1:length(stable)
+        %    fprintf('%s\n',stable(k,:));
+        %end
         
         %print out table for debugging
-        fprintf('flip %c%i %c%i %c%i\n',table');
+        %fprintf('flip %c%i %c%i %c%i\n',table');
         
         %theta=linspace(0,2*pi,60);
 
