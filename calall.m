@@ -1,7 +1,19 @@
 function cor=calall(mag_axis,com,baud,gain,ADCgain,a)
-    [corx,measx]=tCal(mag_axis,'X',com,baud,gain,ADCgain,a);
-    [cory,measy]=tCal(mag_axis,'Y',com,baud,gain,ADCgain,a);
-    [corz,measz,Bs]=tCal(mag_axis,'Z',com,baud,gain,ADCgain,a);
+    %acceptable error level
+    good_err=0.015;
+    
+    [corx,ermsx]=tCal(mag_axis,'X',com,baud,gain,ADCgain,a);
+    if ermsx>good_err
+        error('Large calibration error of %f.',ermsx);
+    end
+    [cory,ermsy]=tCal(mag_axis,'Y',com,baud,gain,ADCgain,a);
+    if ermsy>good_err
+        error('Large calibration error of %f.',ermsy);
+    end
+    [corz,ermsz]=tCal(mag_axis,'Z',com,baud,gain,ADCgain,a);
+    if ermsz>good_err
+        error('Large calibration error of %f.',ermsz);
+    end
 
     %initialize full compensation data set
     cor=zeros(51,2);

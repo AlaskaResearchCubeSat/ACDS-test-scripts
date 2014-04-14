@@ -1,4 +1,4 @@
-function [cor,meas,Bs]=tCal(mag_axis,tq_axis,com,baud,gain,ADCgain,a)
+function [cor,erms]=tCal(mag_axis,tq_axis,com,baud,gain,ADCgain,a)
     %calibrate torquers and magnetomitor using helmholtz cage. Connects to
     %ACDS board using async connection to sensor proxy
     if(~exist('baud','var') || isempty(baud))
@@ -320,8 +320,13 @@ function [cor,meas,Bs]=tCal(mag_axis,tq_axis,com,baud,gain,ADCgain,a)
             A(rng,2+k)=ones(length(Bs),1);
         end
         As=(A'*A)^-1*A';
-        corx=As*(reshape((ones(tlen,1)*Bs(1,:))',1,[])');
-        cory=As*(reshape((ones(tlen,1)*Bs(2,:))',1,[])');
+        %Create Bs vector
+        Bsv=reshape((ones(tlen,1)*Bs(2,:))',1,[])';
+        %calcualate correction values
+        corx=As*Bsv;
+        cory=As*Bsv;
+        %calculate error
+        erms=sqrt(sum(mean([Bsv-A*corx,Bsv-A*cory].^2)));
         cor=[corx cory];
     catch err
         if exist('cc','var')
