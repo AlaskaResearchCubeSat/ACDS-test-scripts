@@ -1,6 +1,6 @@
 function cor=calall(mag_axis,com,baud,gain,ADCgain,a)
     %acceptable error level
-    good_err=0.015;
+    good_err=0.15;
     
     [corx,ermsx]=tCal(mag_axis,'X',com,baud,gain,ADCgain,a);
     if ermsx>good_err
