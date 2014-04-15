@@ -328,16 +328,12 @@ function [flips,stat,stat_index]=tCalTstFull(mag_axis,cor,com,baud,gain,ADCgain,
         stairs(sn,2*tstat(stlen*(2)+3,:)+35,'b')
         stairs(sn,2*tstat(stlen*(2)+4,:)+39,'m')
         
-        stairs(sn,stat_index,'k');
+        %stairs(sn,stat_index,'k');
         hold off;
-        switch tq_axis
-            case 1
-                legend('X1','X2','X3','X4','Index');
-            case 2
-                legend('Y1','Y2','Y3','Y4','Index');
-            case 3
-                legend('Z1','Z2','Z3','Z4','Index');
-        end
+        
+        legend('X1','X2','X3','X4',...
+               'Y1','Y2','Y3','Y4',...
+               'Z1','Z2','Z3','Z4');
         %link subplots x-axis
         linkaxes([s1,s2],'x');
         %add functions folder to path
