@@ -122,7 +122,7 @@ function [flips,stat,stat_index]=tCalTstFull(mag_axis,cor,com,baud,gain,ADCgain,
             idxZ=stat2Idx(stline,3);
             %save index
             stat_index(1,:)=[idxX,idxY,idxZ];
-            curOS=cor(3,:)+cor(3+idxX,:)+cor(3+16+idxY,:)+cor(3+2*16+idxZ,:)
+            curOS=cor(3,:)+cor(3+idxX,:)+cor(3+16+idxY,:)+cor(3+2*16+idxZ,:);
             %parse current status
             tqstat=stat_dat(stline);
         catch err
@@ -208,7 +208,7 @@ function [flips,stat,stat_index]=tCalTstFull(mag_axis,cor,com,baud,gain,ADCgain,
                     %save index
                     stat_index(k/10+1,:)=[idxX,idxY,idxZ];
                     %calculate offset
-                    curOS=cor(3,:)+cor(3+idxX,:)+cor(3+16+idxY,:)+cor(3+2*16+idxZ,:)
+                    curOS=cor(3,:)+cor(3+idxX,:)+cor(3+16+idxY,:)+cor(3+2*16+idxZ,:);
                     %parse current status
                     tqstat=stat_dat(stline);
                 catch err
