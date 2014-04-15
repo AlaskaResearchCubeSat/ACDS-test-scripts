@@ -1,15 +1,19 @@
 function cor=calall(mag_axis,com,baud,gain,ADCgain,a)
     %acceptable error level
     good_err=0.15;
-    
+    fprintf('Calibrating X-axis\n');
     [corx,ermsx]=tCal(mag_axis,'X',com,baud,gain,ADCgain,a);
     if ermsx>good_err
         error('Large calibration error of %f.',ermsx);
     end
+    
+    fprintf('Calibrating Y-axis\n');
     [cory,ermsy]=tCal(mag_axis,'Y',com,baud,gain,ADCgain,a);
     if ermsy>good_err
         error('Large calibration error of %f.',ermsy);
     end
+    
+    fprintf('Calibrating Z-axis\n');
     [corz,ermsz]=tCal(mag_axis,'Z',com,baud,gain,ADCgain,a);
     if ermsz>good_err
         error('Large calibration error of %f.',ermsz);
