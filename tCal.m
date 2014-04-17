@@ -321,12 +321,13 @@ function [cor,erms]=tCal(mag_axis,tq_axis,com,baud,gain,ADCgain,a)
         end
         As=(A'*A)^-1*A';
         %Create Bs vector
-        Bsv=reshape((ones(tlen,1)*Bs(2,:))',1,[])';
+        Bsv1=reshape((ones(tlen,1)*Bs(1,:))',1,[])';
+        Bsv2=reshape((ones(tlen,1)*Bs(2,:))',1,[])';
         %calcualate correction values
-        corx=As*Bsv;
-        cory=As*Bsv;
+        corx=As*Bsv1;
+        cory=As*Bsv2;
         %calculate error
-        erms=sqrt(sum(mean([Bsv-A*corx,Bsv-A*cory].^2)));
+        erms=sqrt(sum(mean([Bsv1-A*corx,Bsv2-A*cory].^2)));
         cor=[corx cory];
     catch err
         if exist('cc','var')
