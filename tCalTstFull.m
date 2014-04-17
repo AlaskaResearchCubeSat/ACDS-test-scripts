@@ -224,9 +224,13 @@ function [flips,stat,stat_index]=tCalTstFull(mag_axis,cor,com,baud,gain,ADCgain,
         end
         figure(1);
         clf
+        %set measured
+        show_meas=1;
         hold on
         %plot measured field
-        %plot(sensor(1,:),sensor(2,:),'b');
+        if(show_meas)
+            plot(sensor(1,:),sensor(2,:),'b');
+        end
         %plot commanded field
         plot(Bs(1,:),Bs(2,:),'r');
         %Calculate Scale only corrected values
@@ -247,11 +251,13 @@ function [flips,stat,stat_index]=tCalTstFull(mag_axis,cor,com,baud,gain,ADCgain,
         %plot corrected center
         hc=plot(c(1),c(2),'bo');
         set(get(get(hc,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
-        %calculate center
-        c=mean(sensor,2);
-        %plot centers for measured
-        %hc=plot(c(1),c(2),'b+');
-        %set(get(get(hc,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
+        if(show_meas)
+            %calculate center
+            c=mean(sensor,2);
+            %plot centers for measured
+            hc=plot(c(1),c(2),'b+');
+            set(get(get(hc,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
+        end
         %calculate center
         c=mean(Bs,2);
         %plot centers for commanded
@@ -260,8 +266,11 @@ function [flips,stat,stat_index]=tCalTstFull(mag_axis,cor,com,baud,gain,ADCgain,
         hold off
         ylabel('Magnetic Field [gauss]');
         xlabel('Magnetic Field [gauss]');
-        %legend('Measured','Commanded','Scale only Corrected','Corrected');
-        legend('Commanded','Scale only Corrected','Corrected');
+        if(show_meas)
+            legend('Measured','Commanded','Scale only Corrected','Corrected');
+        else
+            legend('Commanded','Scale only Corrected','Corrected');
+        end
         legend('Location','NorthEastOutside');
         axis('square');
         axis('equal');
