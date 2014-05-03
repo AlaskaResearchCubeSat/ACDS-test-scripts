@@ -225,7 +225,7 @@ function [flips,stat,stat_index]=tCalTstFull(mag_axis,cor,com,baud,gain,ADCgain,
         figure(1);
         clf
         %set measured
-        show_meas=1;
+        show_meas=0;
         hold on
         %plot measured field
         if(show_meas)
