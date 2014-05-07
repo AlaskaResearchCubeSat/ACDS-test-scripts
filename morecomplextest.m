@@ -27,6 +27,8 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
     retry=0;
     
     try
+        %add functions from commandlib
+        oldpath=addpath('Z:\Software\Libraries\commands\Matlab','-end');
         %open serial port
         ser=serial(com,'BaudRate',baud);
        
@@ -273,14 +275,16 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
     catch err
         if exist('ser','var')
             if strcmp(ser.Status,'open')
-                %print ^C to exit async connection
-                fprintf(ser,03);
+                %exit async connection
+                asyncClose(ser);
                 %close port
                 fclose(ser);
             end
             delete(ser);
         end
         fprintf('Total Number of retries %i\n',retry);
+        %restore old path
+        path(oldpath);
         rethrow(err);
     end
     if exist('ser','var')
@@ -293,6 +297,8 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
         end
         delete(ser);
     end
+    %restore old path
+    path(oldpath);
     fprintf('Total Number of retries %i\n',retry);
     
     clf;
@@ -406,6 +412,7 @@ function [dat]=stat_dat(line)
     %reformat status
     dat=[stsx;stsy;stsz];
 end
+
 function [len]=stat_length(line)
     lx=length(sscanf(line,'%[+-] %*[+-] %*[+-] %*i %*i %*i'));
     ly=length(sscanf(line,'%*[+-] %[+-] %*[+-] %*i %*i %*i'));
@@ -419,62 +426,6 @@ function [len]=stat_length(line)
         error('Inconsistant status lengths %i %i %i',lx,ly,lz);
     end
     len=lx;
-end
-
-function asyncOpen(sobj,sys)
-    timeout = 5;
-    %wmsg='async open use ^C to force quit';
-    wmsg='Using Address 0x12';
-    fprintf(sobj,'async %s\n',sys);
-    msg=[];
-    m=fgetl(sobj);
-    %fprintf('%s',m);
-    while ~strncmp(wmsg,msg,length(wmsg)) && timeout>0
-        msg=fgetl(sobj);
-        %fprintf('%s',msg);
-        if(strncmpi('Error',msg,length('Error')))
-            error(msg);
-        end
-        timeout=timeout-1;
-    end
-end
-
-function asyncClose(sobj)
-    %send ^C
-    fprintf(sobj,03);
-    %wait for completion
-    waitReady(sobj,5);
-    %print for debugging
-    %fprintf('async Closed\n');
-end
-
-
-function [success]=waitReady(sobj,timeout,output)
-    if nargin<3
-        output=false;
-    end
-    if nargin<2
-        timeout=5;
-    end
-    msg=0;
-    count=0;
-    while msg(end)~='>'
-        len=sobj.BytesAvailable;
-        if len==0
-            if count*3>=timeout
-                success=false;
-                return
-            end
-            pause(3);
-            count=count+1;
-            continue;
-        end
-        [msg,~,~]=fread(sobj,len);
-        if output
-            fprintf('%s\n',char(msg'));
-        end
-    end
-    success=true;
 end
 
 function table=graycode(n)

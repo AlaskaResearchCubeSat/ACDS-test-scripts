@@ -25,6 +25,8 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
     %current number of retries
     retry=0;
     try
+        %add functions from commandlib
+        oldpath=addpath('Z:\Software\Libraries\commands\Matlab','-end');
         %open serial port
         ser=serial(com,'BaudRate',baud);
        
@@ -48,14 +50,14 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
         end
         pause(1);
         %initialize torquers to a known state
-        fprintf(ser,'reinit');
+        command(ser,'reinit');
         
         if ~waitReady(ser,30)
             error('Error : Could not communicate with prototype. Check connections');
         end
         
-        %print ^C to exit async connection
-        fprintf(ser,03);
+        %exit async connection
+        asyncClose(ser);
             
         %run for 10 iterations
         num=20;
@@ -88,13 +90,11 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
             
             pause(1);
             %flip torquers to + state
-            fprintf(ser,'flip +%i +%i +%i\n',torquer);
+            command(ser,'flip +%i +%i +%i\n',torquer);
             %wait for completion
             waitReady(ser,5);
-            %print ^C to exit async connection
-            fprintf(ser,03);
-            %wait for completion
-            waitReady(ser,5);
+            %exit async connection
+            asyncClose(ser);
             
             %force entry into the loop
             erms=Inf;
@@ -125,7 +125,7 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
             asyncOpen(ser,'ACDS');
             pause(1); 
             %flip torquers to + state
-            fprintf(ser,'flip -%i -%i -%i\n',torquer);
+            command(ser,'flip -%i -%i -%i\n',torquer);
             %wait for completion
             waitReady(ser,5);
             %print ^C to exit async connection
@@ -230,14 +230,16 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
         end
         if exist('ser','var')
             if strcmp(ser.Status,'open')
-                %print ^C to exit async connection
-                fprintf(ser,03);
+               %exit async connection
+                asyncClose(ser);
                 %close port
                 fclose(ser);
             end
             delete(ser);
         end
         fprintf('Total Number of retries %i\n',retry+1);
+        %restore old path
+        path(oldpath);
         rethrow(err);
     end
     if exist('cc','var')
@@ -245,57 +247,13 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
     end
     if exist('ser','var')
         if strcmp(ser.Status,'open')
-            %print ^C to exit async connection
-            fprintf(ser,03);
-            while ser.BytesToOutput
-            end
+           %exit async connection
+            asyncClose(ser);
             fclose(ser);
         end
         delete(ser);
     end
+    %restore old path
+    path(oldpath);
     fprintf('Total Number of retries %i\n',retry+1);
 end
-
-function asyncOpen(sobj,sys)
-    %wmsg='async open use ^C to force quit';
-    wmsg='Using Address 0x12';
-    fprintf(sobj,'async %s\n',sys);
-    msg=[];
-    fgetl(sobj);
-    while ~strncmp(wmsg,msg,length(wmsg))
-        msg=fgetl(sobj);
-        if(strncmpi('Error',msg,length('Error')))
-            error(msg);
-        end
-    end
-end
-
-
-function [success]=waitReady(sobj,timeout,output)
-    if nargin<3
-        output=false;
-    end
-    if nargin<2
-        timeout=5;
-    end
-    msg=0;
-    count=0;
-    while msg(end)~='>'
-        len=sobj.BytesAvailable;
-        if len==0
-            if count*3>=timeout
-                success=false;
-                return
-            end
-            pause(3);
-            count=count+1;
-            continue;
-        end
-        [msg,~,~]=fread(sobj,len);
-        if output
-            fprintf('%s\n',char(msg'));
-        end
-    end
-    success=true;
-end
-

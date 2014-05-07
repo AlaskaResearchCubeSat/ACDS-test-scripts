@@ -75,6 +75,8 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,tq_axis,cor,com,baud,gain,ADCg
     stat_index=zeros(floor(length(Bs)/10)+1,1);
 
     try
+        %add functions from commandlib
+        oldpath=addpath('Z:\Software\Libraries\commands\Matlab','-end');
         cc=cage_control();
         cc.loadCal('calibration.cal');
         %open serial port
@@ -380,14 +382,14 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,tq_axis,cor,com,baud,gain,ADCg
         if exist('cc','var')
             delete(cc);
         end
+        %restore old path
+        path(oldpath);
         rethrow(err);
     end
     if exist('ser','var')
         if strcmp(ser.Status,'open')
-            %print Q to stop simulation
-            fprintf(ser,'Q');
-            while ser.BytesToOutput
-            end
+            %exit async connection
+            asyncClose(ser);
             record(ser,'off');
             fclose(ser);
         end
@@ -396,68 +398,10 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,tq_axis,cor,com,baud,gain,ADCg
     if exist('cc','var')
         delete(cc);
     end
+    %restore old path
+    path(oldpath);
 end
 
-function [success]=waitReady(sobj,timeout,output)
-    if nargin<3
-        output=false;
-    end
-    if nargin<2
-        timeout=5;
-    end
-    msg=0;
-    count=0;
-    while msg(end)~='>'
-        len=sobj.BytesAvailable;
-        if len==0
-            if count*3>=timeout
-                success=false;
-                return
-            end
-            pause(3);
-            count=count+1;
-            continue;
-        end
-        [msg,~,~]=fread(sobj,len,'char');
-        if output
-            fprintf('%s\n',char(msg'));
-        end
-    end
-    success=true;
-end
-
-function asyncOpen(sobj,sys)
-    timeout = 5;
-    %wmsg='async open use ^C to force quit';
-    wmsg='Using Address 0x12';
-    fprintf(sobj,'async %s\n',sys);
-    msg=[];
-    m=fgetl(sobj);
-    %fprintf('%s',m);
-    while ~strncmp(wmsg,msg,length(wmsg)) && timeout>0
-        msg=fgetl(sobj);
-        %fprintf('%s',msg);
-        if(strncmpi('Error',msg,length('Error')))
-            error(msg);
-        end
-        timeout=timeout-1;
-    end
-end
-
-function asyncClose(sobj)
-    %get number of bytes in buffer
-    n=sobj.BytesAvailable;
-    if(n)
-        %read all bytes
-        fread(sobj,n,'char');
-    end
-    %send ^C
-    fprintf(sobj,'%c',03);
-    %wait for completion
-    waitReady(sobj,5);
-    %print for debugging
-    %fprintf('async Closed\n');
-end
 
 function [stat]=stat_strip(line)
     sts=textscan(line,'%[+-?!?] %[+-!?] %[+-!?] %*d %*d %*d');  
@@ -531,42 +475,7 @@ function [tq,dir]=random_flip(stat)
         end
     end
 end
-      
-function [cmd]=command(sobj,cmd,varargin)
-    %first flush buffer    
-    %get number of bytes in buffer
-    n=sobj.BytesAvailable;
-    if(n)
-        %read all bytes
-        fread(sobj,n,'char');
-    end
-    %generate command
-    cmd=sprintf(cmd,varargin{:});
-    %send command
-    fprintf(sobj,'%s\n',cmd);
-    %get line for echo
-    line=fgetl(sobj);
-    %number of re-reads
-    num=3;
-    %number of retries
-    ntry=2;
-    while ~strcmp(cmd,line(1:end-1))
-        num=num-1;
-        if num<=0
-            if ntry>0
-                ntry=ntry-1;
-                %reset number of reads
-                num=3;
-                %send command again
-                fprintf(sobj,'%s\n',cmd);
-            else
-                error('Command ''%s'' failed. Echo : ''%s''',cmd,line(1:end-1));
-            end
-        end
-        line=fgetl(sobj);
-    end
-end
- 
+  
 function statchk(stat)
     axis={'X','Y','Z'};
     for k=1:3
