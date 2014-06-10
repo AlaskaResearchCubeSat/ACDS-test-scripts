@@ -55,26 +55,34 @@ function [cor,erms]=tCal(mag_axis,tq_axis,com,baud,gain,ADCgain,a)
     try
         cc=cage_control();
         cc.loadCal('calibration.cal');
-        %open serial port
-        ser=serial(com,'BaudRate',baud);
-        
-        %setup recording for debugging
-        ser.RecordName='tCal-debug.txt';
-        ser.RecordMode='overwrite';
-        ser.RecordDetail='verbose';
-       
-        %set timeout to 5s
-        set(ser,'Timeout',5);        %open port
-        fopen(ser);
-        %start recording
-        record(ser,'on');
+        %check if com is a serial object
+        if(isa(com,'serial'))
+            %use already open port
+            ser=com;
+            %check for bytes in buffer
+            bytes=ser.BytesAvailable;
+            if(bytes~=0)
+                %read all available bytes to flush buffer
+                fread(ser,bytes);
+            end
+        else
+            %open serial port
+            ser=serial(com,'BaudRate',baud);
 
-        %disable terminator
-        set(ser,'Terminator','');
-        %print ^C to exit async connection
-        fprintf(ser,03);
-        %set terminator to CR/LF
-        set(ser,'Terminator','LF');
+            %setup recording for debugging
+            ser.RecordName='tCal-debug.txt';
+            ser.RecordMode='overwrite';
+            ser.RecordDetail='verbose';
+
+            %set timeout to 5s
+            set(ser,'Timeout',5);        %open port
+            fopen(ser);
+            %start recording
+            record(ser,'on');
+        end
+        
+        %close async connection
+        asyncClose(ser);
         
          %set ADC gain for magnetomitor
         command(ser,'gain %i',ADCgain);
