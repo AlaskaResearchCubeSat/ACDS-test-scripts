@@ -24,6 +24,15 @@ function store_all_cal(com,baud,gain,ADCgain,a)
             %send data to ACDS
             SPI_write(ser,'ACDS',89+k,dat);
         end
+        %connect to the ACDS board
+        asyncOpen(ser,'ACDS');
+        for k=1:6
+            command(ser,'unpack %i',89+k);
+            %wait for command to finish
+            waitReady(ser,[],true);
+        end
+        %close async
+        asyncClose(ser);
     catch err
         if exist('ser','var')
             if strcmp(ser.Status,'open')
