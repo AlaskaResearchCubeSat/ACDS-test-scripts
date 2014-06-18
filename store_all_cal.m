@@ -8,6 +8,11 @@ function store_all_cal(com,baud,gain,ADCgain,a)
         %set timeout to 5s
         set(ser,'Timeout',5);        %open port
         fopen(ser);
+        
+        %set log level to only log errors this prevents unnessisary
+        %warnings from confusing Matlab if they are dumped to UART
+        command(ser,'log error');
+        waitReady(ser);
 
         for k=1:length(axis_names)
             %calculate correction values
