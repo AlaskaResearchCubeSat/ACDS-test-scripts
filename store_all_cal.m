@@ -16,9 +16,9 @@ function store_all_cal(com,baud,gain,ADCgain,a)
 
         for k=1:length(axis_names)
             %calculate correction values
-            %cor=calall(axis_names{k},com,baud,gain,ADCgain,a);
+            cor=calall(axis_names{k},com,baud,gain,ADCgain,a);
             %TESTING: generate random data
-            cor=rand(51,2);
+            %cor=rand(51,2);
             %make data to send to ACDS
             dat=make_cor_dat(cor,axis_names{k});
             %send data to ACDS
