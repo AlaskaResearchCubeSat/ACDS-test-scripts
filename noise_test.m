@@ -16,6 +16,8 @@ function [p] = noise_test(mag_axis,com,baud,gain,ADCgain)
         ADCgain=[];
     end
     try
+        %add functions from commandlib
+        oldpath=addpath('Z:\Software\Libraries\commands\Matlab','-end');
         %open serial port
         ser=serial(com,'BaudRate',baud);
        
@@ -79,13 +81,15 @@ function [p] = noise_test(mag_axis,com,baud,gain,ADCgain)
         end
         if exist('ser','var')
             if strcmp(ser.Status,'open')
-                %print ^C to exit async connection
-                fprintf(ser,03);
+                %exit async connection
+                asyncClose(ser);
                 %close port
                 fclose(ser);
             end
             delete(ser);
         end
+        %restore old path
+        path(oldpath);
         rethrow(err);
     end
     if exist('cc','var')
@@ -93,55 +97,14 @@ function [p] = noise_test(mag_axis,com,baud,gain,ADCgain)
     end
     if exist('ser','var')
         if strcmp(ser.Status,'open')
-            %print ^C to exit async connection
-            fprintf(ser,03);
+            %exit async connection
+            asyncClose(ser);
             while ser.BytesToOutput
             end
             fclose(ser);
         end
         delete(ser);
     end
+    %restore old path
+    path(oldpath);
 end
-
-function asyncOpen(sobj,sys)
-    wmsg='async open use ^C to force quit';
-    fprintf(sobj,'async %s\n',sys);
-    msg=[];
-    fgetl(sobj);
-    while ~strncmp(wmsg,msg,length(wmsg))
-        msg=fgetl(sobj);
-        if(strncmpi('Error',msg,length('Error')))
-            error(msg);
-        end
-    end
-end
-
-
-function [success]=waitReady(sobj,timeout,output)
-    if nargin<3
-        output=false;
-    end
-    if nargin<2
-        timeout=5;
-    end
-    msg=0;
-    count=0;
-    while msg(end)~='>'
-        len=sobj.BytesAvailable;
-        if len==0
-            if count*3>=timeout
-                success=false;
-                return
-            end
-            pause(3);
-            count=count+1;
-            continue;
-        end
-        [msg,~,~]=fread(sobj,len);
-        if output
-            fprintf('%s\n',char(msg'));
-        end
-    end
-    success=true;
-end
-

@@ -22,7 +22,11 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
     if (~exist('a','var'))
         a=[];
     end
+    %current number of retries
+    retry=0;
     try
+        %add functions from commandlib
+        oldpath=addpath('Z:\Software\Libraries\commands\Matlab','-end');
         %open serial port
         ser=serial(com,'BaudRate',baud);
        
@@ -46,14 +50,14 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
         end
         pause(1);
         %initialize torquers to a known state
-        fprintf(ser,'init');
+        command(ser,'reinit');
         
         if ~waitReady(ser,30)
             error('Error : Could not communicate with prototype. Check connections');
         end
         
-        %print ^C to exit async connection
-        fprintf(ser,03);
+        %exit async connection
+        asyncClose(ser);
             
         %run for 10 iterations
         num=20;
@@ -70,6 +74,11 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
         %get start time to calculate elapsed time
         Tstart=tic();
         
+        %acceptable error level
+        good_err=0.006;
+        %maximum number of retries
+        max_retry=5;
+        
         for k=1:num
             
             fprintf('Running Test %i of %i\n',k,num);
@@ -81,22 +90,42 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
             
             pause(1);
             %flip torquers to + state
-            fprintf(ser,'flip +%i +%i +%i\n',torquer);
+            command(ser,'flip +%i +%i +%i\n',torquer);
             %wait for completion
             waitReady(ser,5);
-            %print ^C to exit async connection
-            fprintf(ser,03);
-            %wait for completion
-            waitReady(ser,5);
+            %exit async connection
+            asyncClose(ser);
             
-            %run a calibration
-            p(k,:)=magSclCalc(mag_axis,ser,baud,gain,ADCgain,a);
+            %force entry into the loop
+            erms=Inf;
+            %re run the test until the error is low but don't allow too
+            %many failed tests
+            while(erms>good_err)
+                %run a calibration
+                [p(k,:),erms]=magSclCalc(mag_axis,ser,baud,gain,ADCgain,a);
+
+                %check error for problems
+                if(erms>good_err)
+                    %check if maximum number of retries has been exceded
+                    if(retry>max_retry)
+                        %Throw an error, aborting the test
+                        error('Large calibration error of %f. Number of retries exceded aborting.',erms);
+                    else
+                        %give a warning with the test error
+                        warning('Large calibration error of %f. Redoing measurment.',erms);
+                        %Beep to notify the user TODO: is this needed/usefull?
+                        beep;
+                    end
+                    %increment number of retries
+                    retry=retry+1;
+                end
+            end
             
             %connect to ACDS board
             asyncOpen(ser,'ACDS');
             pause(1); 
             %flip torquers to + state
-            fprintf(ser,'flip -%i -%i -%i\n',torquer);
+            command(ser,'flip -%i -%i -%i\n',torquer);
             %wait for completion
             waitReady(ser,5);
             %print ^C to exit async connection
@@ -104,8 +133,30 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
             %wait for completion
             waitReady(ser,5);
             
-            %run a calibration
-            [m(k,:),erms]=magSclCalc(mag_axis,ser,baud,gain,ADCgain,a);
+            %force entry into the loop
+            erms=Inf;
+            %re run the test until the error is low but don't allow too
+            %many failed tests
+            while(erms>good_err)
+                %run a calibration
+                [m(k,:),erms]=magSclCalc(mag_axis,ser,baud,gain,ADCgain,a);
+
+                %check error for problems
+                if(erms>good_err)
+                    %check if maximum number of retries has been exceded
+                    if(retry>max_retry)
+                        %Throw an error, aborting the test
+                        error('Large calibration error of %f. Number of retries exceded aborting.',erms);
+                    else
+                        %give a warning with the test error
+                        warning('Large calibration error of %f. Redoing measurment.',erms);
+                         %Beep to notify the user TODO: is this needed/usefull?
+                        beep;
+                    end
+                    %increment number of retries
+                    retry=retry+1;
+                end
+            end
             
             %===[estimate completeion time]===
             %calculate done fraction
@@ -179,13 +230,16 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
         end
         if exist('ser','var')
             if strcmp(ser.Status,'open')
-                %print ^C to exit async connection
-                fprintf(ser,03);
+               %exit async connection
+                asyncClose(ser);
                 %close port
                 fclose(ser);
             end
             delete(ser);
         end
+        fprintf('Total Number of retries %i\n',retry+1);
+        %restore old path
+        path(oldpath);
         rethrow(err);
     end
     if exist('cc','var')
@@ -193,56 +247,13 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
     end
     if exist('ser','var')
         if strcmp(ser.Status,'open')
-            %print ^C to exit async connection
-            fprintf(ser,03);
-            while ser.BytesToOutput
-            end
+           %exit async connection
+            asyncClose(ser);
             fclose(ser);
         end
         delete(ser);
     end
+    %restore old path
+    path(oldpath);
+    fprintf('Total Number of retries %i\n',retry+1);
 end
-
-function asyncOpen(sobj,sys)
-    %wmsg='async open use ^C to force quit';
-    wmsg='Using Address 0x12';
-    fprintf(sobj,'async %s\n',sys);
-    msg=[];
-    fgetl(sobj);
-    while ~strncmp(wmsg,msg,length(wmsg))
-        msg=fgetl(sobj);
-        if(strncmpi('Error',msg,length('Error')))
-            error(msg);
-        end
-    end
-end
-
-
-function [success]=waitReady(sobj,timeout,output)
-    if nargin<3
-        output=false;
-    end
-    if nargin<2
-        timeout=5;
-    end
-    msg=0;
-    count=0;
-    while msg(end)~='>'
-        len=sobj.BytesAvailable;
-        if len==0
-            if count*3>=timeout
-                success=false;
-                return
-            end
-            pause(3);
-            count=count+1;
-            continue;
-        end
-        [msg,~,~]=fread(sobj,len);
-        if output
-            fprintf('%s\n',char(msg'));
-        end
-    end
-    success=true;
-end
-
