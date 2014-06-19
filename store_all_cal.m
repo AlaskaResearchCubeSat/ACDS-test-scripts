@@ -26,7 +26,7 @@ function store_all_cal(com,baud,gain,ADCgain,a)
         end
         %connect to the ACDS board
         asyncOpen(ser,'ACDS');
-        for k=1:6
+        for k=1:length(axis_names)
             command(ser,'unpack %i',89+k);
             %wait for command to finish
             waitReady(ser,[],true);
