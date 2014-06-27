@@ -20,7 +20,7 @@ function parm=mag_parm(cor,gain)
     parm(:,5)=-100*cor(:,4)./cor(:,1);
     parm(:,6)=1e3*(cor(:,3).*cor(:,4)-cor(:,1).*cor(:,6))./(cor(:,1).*cor(:,5)-cor(:,4).*cor(:,2))/gain/(2*2^16-1);
     %check output arguments
-    if(nargout>0)
+    if(nargout==0)
         %print results
         for k=1:s(1)
                 %print results
