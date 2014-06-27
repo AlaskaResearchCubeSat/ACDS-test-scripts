@@ -341,7 +341,7 @@ function [cor,erms]=tCal(mag_axis,tq_axis,com,baud,gain,ADCgain,a)
         if exist('cc','var')
             delete(cc);
         end
-        if exist('ser','var')
+        if exist('ser','var') && ~isa(com,'serial')
             if strcmp(ser.Status,'open')
                 fclose(ser);
             end
@@ -352,7 +352,7 @@ function [cor,erms]=tCal(mag_axis,tq_axis,com,baud,gain,ADCgain,a)
     if exist('cc','var')
         delete(cc);
     end
-    if exist('ser','var')
+    if exist('ser','var') && ~isa(com,'serial')
         if strcmp(ser.Status,'open')
             %print ^c to stop simulation
             fprintf(ser,'%c',03);
