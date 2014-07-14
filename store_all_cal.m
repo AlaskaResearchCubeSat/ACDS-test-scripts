@@ -32,6 +32,8 @@ function cor=store_all_cal(com,baud,gain,ADCgain)
         for k=1:length(store_axis)
             %find axis in the list of axis names
             idx=strcmp(store_axis{k},axis_names);
+            %print name of SPB that is used
+            fprintf('Calibrating the %s SPB\n',axis_names{idx});
             %calculate correction values
             cor{k}=calall(axis_names{idx},ser,baud,gain,ADCgain,a{idx});
             %TESTING: generate random data
