@@ -7,7 +7,9 @@ function cor=store_all_cal(com,baud,gain,ADCgain)
        [1 0 0;0 0 -1;0 -1 0],[-1 0  0;0 0 1;0 -1 0],...             %Y +/-
        [0 -1 0;-1 0 0;0 0 1],[1 0 0;0 1 0;0 0 1],...             %Z +/-
        };
-   
+    %sector on the SD card to store data to
+    SD_sector=100;
+    
     try
         %add functions from commandlib
         oldpath=addpath('Z:\ADCS\functions','Z:\Software\Libraries\commands\Matlab','-end');
@@ -42,7 +44,7 @@ function cor=store_all_cal(com,baud,gain,ADCgain)
             dat=make_cor_dat(cor{k},axis_names{k});
             try
                 %send data to ACDS
-                SPI_write(ser,'ACDS',89+k,dat); 
+                SPI_write(ser,'ACDS',SD_sector+k-1,dat); 
             catch err
                 fprintf(2,'Error : sending data "%s"\n',err.message);
             end
@@ -53,7 +55,7 @@ function cor=store_all_cal(com,baud,gain,ADCgain)
         fprintf('Unpacking correction data\n');
         
         for k=1:length(store_axis)
-            command(ser,'unpack %i',89+k);
+            command(ser,'unpack %i',SD_sector+k-1);
             %wait for command to finish
             waitReady(ser,[],true);
         end
