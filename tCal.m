@@ -306,7 +306,7 @@ function [cor,erms]=tCal(mag_axis,tq_axis,com,baud,gain,ADCgain,a)
             line=fgetl(ser);
             %plot data with old index
             rng=(((idx)*length(Bs)+1):((idx+1)*length(Bs)));
-            plot(Bs(1,:),Bs(2,:),'r',magScale*meas(1,rng),magScale*meas(2,rng),'g');
+            plot(Bs(1,:),Bs(2,:),'r',magScale*meas(1,rng),magScale*meas(2,rng),'g',sensor(1,rng),sensor(2,rng),'b');
             axis('equal');
             %parse index
             idx=stat2Idx(line,tq_axis);
