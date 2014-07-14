@@ -9,17 +9,21 @@ function [dat]=make_cor_dat(cor,axis)
         error('Axis direction must be "+" or "-"');
     end
     dat=zeros(512,1,'uint8');
+    tmp=zeros(102,1,'single');
     dat(1:4)='COR ';
     dat(5:6)=axis;
     %correction scale values
-    dat(7:14)=typecast(cast(cor(1:2,1),'single'),'uint8');
-    dat(15:22)=typecast(cast(cor(1:2,2),'single'),'uint8');
+    tmp(1:2)=cast(cor(1:2,1),'single');
+    tmp(3:4)=cast(cor(1:2,2),'single');
     %base offset
-    dat(23:26)=typecast(cast(cor(3,1),'single'),'uint8');
-    dat(27:30)=typecast(cast(cor(3,2),'single'),'uint8');
+    tmp(5)=cast(cor(3,1),'single');
+    tmp(6)=cast(cor(3,2),'single');
     %offsets for each set of torquer states
-    dat(31:222)=typecast(cast(cor(4:51,1),'single'),'uint8');
-    dat(223:414)=typecast(cast(cor(4:51,2),'single'),'uint8');
+    tmp(7:54)=cast(cor(4:51,1),'single');
+    tmp(55:102)=cast(cor(4:51,2),'single');
+    %testing put consectuive numbers in for tmp
+    %tmp=cast(1:102,'single');
+    dat(7:414)=typecast(tmp,'uint8');
     %calculate checksum for data
     check=mod(sum(dat(1:510)),2^16);
     dat(511:512)=typecast(cast(check,'uint16'),'uint8');
