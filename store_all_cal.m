@@ -43,7 +43,7 @@ function cor=store_all_cal(com,baud,gain,ADCgain)
             
             asyncClose(ser);
             %make data to send to ACDS
-            dat=make_cor_dat(cor{k},axis_names{k});
+            dat=make_cor_dat(cor{k},axis_names{idx});
             try
                 %send data to ACDS
                 SPI_write(ser,'ACDS',SD_sector+k-1,dat); 
