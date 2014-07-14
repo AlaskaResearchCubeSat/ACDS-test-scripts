@@ -258,6 +258,8 @@ function [cor,erms]=tCal(mag_axis,tq_axis,com,baud,gain,ADCgain,a)
             
             pause(1);
 
+            rng_err=0;
+            
             for k=1:length(Bs)
                 cc.Bs=a*Bs(:,k);
                 %pause to let the supply settle
@@ -282,6 +284,14 @@ function [cor,erms]=tCal(mag_axis,tq_axis,com,baud,gain,ADCgain,a)
                 end
                 %meas(1:2,k+(kk-1)*length(Bs))=dat;
                 meas(3,k+(idx)*length(Bs))=0;
+                if(any(abs(meas(:,k+(idx)*length(Bs)))>30e3))
+                    rng_err=rng_err+1;
+                    fprintf(2,'Value (%f %f) is out of range for sample #%i\n',meas(1:2,k+(idx)*length(Bs)),k);
+                end
+            end
+            
+            if(rng_err)
+                fprintf(2,'Warning %i out of range measurements!\r\n',rng_err);
             end
             
             %connect to ACDS board
