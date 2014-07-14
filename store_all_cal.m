@@ -39,7 +39,7 @@ function cor=store_all_cal(com,baud,gain,ADCgain)
             %TESTING: generate random data
             %cor{k}=rand(51,2);
             %print out datasheet like values for comparison
-            mag_parm(reshape(cor{1}(1:3,[2,1]),1,[]),gain*ADCgain);
+            mag_parm(reshape(cor{1}(1:3,1:2),1,[]),gain*ADCgain);
             
             asyncClose(ser);
             %make data to send to ACDS
