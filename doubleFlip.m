@@ -40,7 +40,7 @@ function [B]=doubleFlip(mag_axis,tq_axis,tq_num,com,baud,gain,ADCgain)
             end
         end
     end
-    magScale=1/(2*65535*1e-3*gain*ADCgain);
+    magScale=1/(65535*1e-3*gain*ADCgain);
     try
         %add functions from commandlib
         oldpath=addpath('Z:\Software\Libraries\commands\Matlab','-end');

@@ -81,7 +81,7 @@ function [cor,erms]=magSclCalc(mag_axis,com,baud,gain,ADCgain,a)
             error('Could not communicate with prototype. Check connections');
         end
         
-        magScale=1/(2*65535*1e-3*gain*ADCgain);
+        magScale=1/(65535*1e-3*gain*ADCgain);
         
         %theta=linspace(0,2*pi,60);
         %Bs=0.5*[sin(theta);cos(theta);0*theta];

@@ -43,7 +43,7 @@ function dat=magSclTst(cor,mag_axis,com,baud,gain,ADCgain)
             error('magcal','Could not communicate with prototype. Check connections');
         end
         
-        magScale=1/(2*65535*1e-3*gain*ADCgain);
+        magScale=1/(65535*1e-3*gain*ADCgain);
         
         %disable terminator
         set(ser,'Terminator','');

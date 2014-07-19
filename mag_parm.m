@@ -11,14 +11,19 @@ function parm=mag_parm(cor,gain)
     %for k=1:s(1)
     %    fprintf(char(fmt),cor(k,:));
     %end
-    %calcualte values
-    parm(:,1)=1e3*cor(:,5)./(cor(:,1).*cor(:,5)-cor(:,4).*cor(:,2))/gain/(2*2^16-1);
-    parm(:,2)=-100*cor(:,2)./cor(:,5);
-    parm(:,3)=1e3*(cor(:,2).*cor(:,6)-cor(:,5).*cor(:,3))./(cor(:,1).*cor(:,5)-cor(:,4).*cor(:,2))/gain/(2*2^16-1);
     
-    parm(:,4)=1e3*cor(:,1)./(cor(:,1).*cor(:,5)-cor(:,4).*cor(:,2))/gain/(2*2^16-1);
+    
+    %scale ADC into V/V units
+    AdcScale=1/(gain*(2^16-1));
+    
+    %calcualte values
+    parm(:,1)=1e3*cor(:,5)./(cor(:,1).*cor(:,5)-cor(:,4).*cor(:,2))*AdcScale;
+    parm(:,2)=-100*cor(:,2)./cor(:,5);
+    parm(:,3)=1e3*(cor(:,2).*cor(:,6)-cor(:,5).*cor(:,3))./(cor(:,1).*cor(:,5)-cor(:,4).*cor(:,2))*AdcScale;
+    
+    parm(:,4)=1e3*cor(:,1)./(cor(:,1).*cor(:,5)-cor(:,4).*cor(:,2))*AdcScale;
     parm(:,5)=-100*cor(:,4)./cor(:,1);
-    parm(:,6)=1e3*(cor(:,3).*cor(:,4)-cor(:,1).*cor(:,6))./(cor(:,1).*cor(:,5)-cor(:,4).*cor(:,2))/gain/(2*2^16-1);
+    parm(:,6)=1e3*(cor(:,3).*cor(:,4)-cor(:,1).*cor(:,6))./(cor(:,1).*cor(:,5)-cor(:,4).*cor(:,2))*AdcScale;
     %check output arguments
     if(nargout==0)
         %print results

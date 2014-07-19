@@ -51,7 +51,7 @@ function [cor,erms]=tCal(mag_axis,tq_axis,com,baud,gain,ADCgain,a)
         %calculate inverse to correct for measurments
         inva=inv(a);
     end
-    magScale=1/(2*65535*1e-3*gain*ADCgain);
+    magScale=1/(65535*1e-3*gain*ADCgain);
     try
         cc=cage_control();
         cc.loadCal('calibration.cal');
