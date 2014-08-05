@@ -30,14 +30,14 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
         %open serial port
         ser=serial(com,'BaudRate',baud);
        
-        %set timeout to 5s
+        %set timeout to 15s
         set(ser,'Timeout',15);        %open port
         fopen(ser);
 
         %disable terminator
         set(ser,'Terminator','');
-        %print ^C to exit async connection
-        fprintf(ser,03);
+        %exit async connection
+        asyncClose(ser);
         %set terminator to CR/LF
         set(ser,'Terminator','LF');
         %connect to ACDS board
