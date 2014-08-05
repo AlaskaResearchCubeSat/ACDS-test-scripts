@@ -30,7 +30,7 @@ for k=1:length(board_names)
             %set toruer
             torquer(ax)=tq;
             %[p,m]=offset_test('X-','COM6',9600,torquer,95.3,1);
-            [p,m]=offset_test('X-','COM6',9600,torquer,gain{k}(1),gain{k}(2),a{k});
+            [p,m]=offset_test('X-','COM3',57600,torquer,gain{k}(1),gain{k}(2),a{k});
             %save figure
             saveas(gcf(),['Z:\ADCS\figures\' board_names{k} ax_names{ax} int2str(tq) '-flip-fig'],'fig');
             %save data
