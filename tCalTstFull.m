@@ -58,6 +58,8 @@ function [flips,stat,stat_index]=tCalTstFull(mag_axis,cor,com,baud,gain,ADCgain,
         cc.loadCal('calibration.cal');
         %open serial port
         ser=serial(com,'BaudRate',baud);
+        %set terminator to CR/LF
+        set(ser,'Terminator','LF');
         %set timeout to 15s
         set(ser,'Timeout',15);
         
@@ -71,22 +73,22 @@ function [flips,stat,stat_index]=tCalTstFull(mag_axis,cor,com,baud,gain,ADCgain,
         %start recording
         record(ser,'on');
 
-        %disable terminator
-        set(ser,'Terminator','');
         %print ^C to exit async connection
-        fprintf(ser,03);
-        pause(1)
-        %set terminator to CR/LF
-        set(ser,'Terminator','LF');
+        asyncClose(ser)
         
         %set ADC gain for magnetomitor
         fprintf(ser,sprintf('gain %i',ADCgain));
         %get echoed line
         fgetl(ser);
         %get output line
-        gs=fgetl(ser);
+        gs=deblank(fgetl(ser));
+        %parse gain from result
+        [gain,elm,err]=sscanf(gs,'ADC gain = %i');
         %make sure that gain is correct
-        if(ADCgain~=sscanf(gs,'ADC gain = %i'))
+        if(elm~=1 || ~isempty(err))
+            error('Failed to parse ADC gain "%s" %s',gs,err);
+        end
+        if(ADCgain~=gain)
             error('Failed to set ADC gain to %i',ADCgain);
         end
         if ~waitReady(ser,10)
