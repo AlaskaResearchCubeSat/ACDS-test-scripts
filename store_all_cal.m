@@ -7,8 +7,6 @@ function cor=store_all_cal(com,baud,gain,ADCgain)
        [-1 0 0;0 0 1;0 1 0],[1 0  0;0 0 -1;0 1 0],...             %Y +/-
        [0 1 0;1 0 0;0 0 -1],[1 0 0;0 1 0;0 0 1],...             %Z +/-
        };
-    %sector on the SD card to store data to
-    SD_sector=100;
     
     try
         %add functions from commandlib
@@ -26,6 +24,19 @@ function cor=store_all_cal(com,baud,gain,ADCgain)
         %warnings from confusing Matlab if they are dumped to UART
         command(ser,'log error');
         waitReady(ser);
+        
+        %connect to ACDS
+        asyncOpen(ser,'ACDS');
+        %get first avalible sector on the SD card
+        command(ser,'ffsector');
+        %read line
+        line=fgetl(ser);
+        %parse line
+        SD_sector=str2double(line);
+        %wait for command to finish
+        waitReady(ser);
+        %close async
+        asyncClose(ser);
         
         cor=cell(1,length(store_axis));
 
