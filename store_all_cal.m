@@ -1,8 +1,23 @@
-function cor=store_all_cal(com,baud,gain,ADCgain)
+function cor=store_all_cal(com,baud,gain,ADCgain,store_axis)
     axis_names={'X+','X-','Y+','Y-','Z+','Z-'};
+    %give default values if arguments are not given
+    if(~exist('baud','var') || isempty(baud))
+        baud=57600;
+    end
+    if(~exist('com','var') || isempty(com))
+        com='COM3';
+    end
+    if (~exist('gain','var') || isempty(gain))
+        gain=1;
+    end
+    if (~exist('ADCgain','var') || isempty(ADCgain))
+        ADCgain=1;
+    end
+    if (~exist('store_axis','var') || isempty(store_axis))
+        store_axis=axis_names;
+    end
     
-    store_axis={'Y-','Y+','Z+'};
-    
+    %rotation matricies for SPB's
     a={[0 0 1;-1 0 0;0 1 0],[0 0 1;-1 0 0;0 -1 0],...           %X +/-
        [-1 0 0;0 0 1;0 1 0],[1 0  0;0 0 -1;0 1 0],...             %Y +/-
        [0 1 0;1 0 0;0 0 -1],[1 0 0;0 1 0;0 0 1],...             %Z +/-
