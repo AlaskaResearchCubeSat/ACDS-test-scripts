@@ -1,10 +1,10 @@
 function tCalTst(cor,com,baud)
     %test torquer calibration by running through a fileld sequenc and
     %flipping random torquers
-    if(nargin<3)
+    if(~exist('baud','var') || isempty(baud))
         baud=57600;
     end
-    if(nargin<2)
+    if(~exist('com','var') || isempty(com))
         com='COM3';
     end
     try

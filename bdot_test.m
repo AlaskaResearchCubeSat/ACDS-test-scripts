@@ -1,8 +1,8 @@
 function [field,bdot,Mcmd,torque]=bdot_test(com,baud,a)
-    if(nargin<2)
+    if(~exist('baud','var') || isempty(baud))
         baud=57600;
     end
-    if(nargin<1)
+    if(~exist('com','var') || isempty(com))
         com='COM3';
     end
     if(~exist('a','var') || isempty(a))

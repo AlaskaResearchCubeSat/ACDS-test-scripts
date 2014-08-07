@@ -1,11 +1,11 @@
 function [B]=doubleFlip(mag_axis,tq_axis,tq_num,com,baud,gain,ADCgain)
-    if(nargin<3)
+    if(~exist('baud','var') || isempty(baud))
         baud=57600;
     end
     if(~exist('mag_axis','var') || isempty(mag_axis))
         mag_axis='';
     end
-    if(nargin<2)
+    if(~exist('com','var') || isempty(com))
         com='COM3';
     end
     if (~exist('gain','var') || isempty(gain))

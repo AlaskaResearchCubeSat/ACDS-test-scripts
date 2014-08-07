@@ -1,4 +1,10 @@
 function magtst(com,baud)
+    if(~exist('baud','var') || isempty(baud))
+        baud=57600;
+    end
+    if(~exist('com','var') || isempty(com))
+        com='COM3';
+    end
     
     try
         %add functions from commandlib
