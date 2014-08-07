@@ -1,10 +1,13 @@
 
 ax_names={'X','Y','Z'};
+spb_names={'X+','X-','Y+','Y-','Z+','Z-'};
 
-board_names={'X+','X-','Y+','Y-'};
-gain={[1,64],[1,64],[1,64],[1,64]};
+test_names={'Y-','Y+','Z+'};
 
-a={vrrotvec2mat([0 1 0 pi/2]),vrrotvec2mat([0 1 0 -pi/2]),vrrotvec2mat([1 0 0 pi/2]),vrrotvec2mat([1 0 0 -pi/2])};
+a={ [0 0 1;-1 0 0;0 1 0],[0 0 1;-1 0 0;0 -1 0],...           %X +/-
+    [-1 0 0;0 0 1;0 1 0],[1 0  0;0 0 -1;0 1 0],...             %Y +/-
+    [0 1 0;1 0 0;0 0 -1],[1 0 0;0 1 0;0 0 1],...             %Z +/-
+    };
 
 %AM or PM strings for time display
 ampm={'AM','PM'};
@@ -17,24 +20,21 @@ Tstart=tic();
 
 num=2*length(ax_names);
 
-for k=1:length(board_names)
-    for tq=1:2
+for k=1:length(test_names)
+    for tq=1:4
         for ax=1:length(ax_names)
-            %skip some tests
-            %if(tq==1 && ax<=2)
-            %    num=num-1;
-            %    continue;
-            %end
+            %find SPB in the list of axis names
+            idx=strcmp(test_names{k},spb_names);
             %array to set wich torquer to flip
             torquer=zeros(1,3);
             %set toruer
             torquer(ax)=tq;
-            %[p,m]=offset_test('X-','COM6',9600,torquer,95.3,1);
-            [p,m]=offset_test('X-','COM3',57600,torquer,gain{k}(1),gain{k}(2),a{k});
+            %[p,m]=offset_test(test_names{k},'COM6',9600,torquer,95.3,1);
+            [p,m]=offset_test(test_names{k},'COM3',57600,torquer,-95.3,1,a{idx});
             %save figure
-            saveas(gcf(),['Z:\ADCS\figures\' board_names{k} ax_names{ax} int2str(tq) '-flip-fig'],'fig');
+            saveas(gcf(),['Z:\ADCS\figures\' test_names{k} ax_names{ax} int2str(tq) '-flip-fig'],'fig');
             %save data
-            save(['Z:\ADCS\figures\' board_names{k} ax_names{ax} int2str(tq) '-flip-pm'],'p','m')
+            save(['Z:\ADCS\figures\' test_names{k} ax_names{ax} int2str(tq) '-flip-pm'],'p','m')
             %===[estimate completeion time]===
             %calculate iteration number
             num=num+1;
