@@ -88,7 +88,7 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
             
             pause(1);
             %flip torquers to + state
-            command(ser,'flip +%i +%i +%i\n',torquer);
+            command(ser,'flip +%i +%i +%i',torquer);
             %wait for completion
             waitReady(ser,5);
             %exit async connection
@@ -123,7 +123,7 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
             asyncOpen(ser,'ACDS');
             pause(1); 
             %flip torquers to + state
-            command(ser,'flip -%i -%i -%i\n',torquer);
+            command(ser,'flip -%i -%i -%i',torquer);
             %wait for completion
             waitReady(ser,5);
             %print ^C to exit async connection
