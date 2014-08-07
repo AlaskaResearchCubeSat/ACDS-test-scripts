@@ -34,12 +34,10 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
         set(ser,'Timeout',15);        %open port
         fopen(ser);
 
-        %disable terminator
-        set(ser,'Terminator','');
+        %set terminator to LF
+        set(ser,'Terminator','LF');
         %exit async connection
         asyncClose(ser);
-        %set terminator to CR/LF
-        set(ser,'Terminator','LF');
         %connect to ACDS board
         asyncOpen(ser,'ACDS');
         pause(1);  
