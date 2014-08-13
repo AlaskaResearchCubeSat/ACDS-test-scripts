@@ -196,9 +196,7 @@ function tCalTst(cor,com,baud)
         legend('Location','NorthEastOutside');
         axis('equal');
         axis('square');
-        oldp=addpath('Z:\ADCS\functions');
         fig_export('Z:\ADCS\figures\torqueCalTst.eps');
-        path(oldp);
         figure(2);
         clf
         %calculate error magnitude

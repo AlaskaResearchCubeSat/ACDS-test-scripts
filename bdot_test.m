@@ -148,15 +148,10 @@ function [field,bdot,Mcmd,torque]=bdot_test(com,baud,a)
         xlabel('Sample Number');
         ylabel('Magnetic Field [Gauss]');
         legend('X','Y','Z');
-
-        %add functions folder to path
-        oldp=addpath('Z:\ADCS\functions');
         
         %save plot
         fig_export('Z:\ADCS\figures\detumble-test.eps');
-        %restore path
-        path(oldp);
-        
+
     catch err
         if exist('Btimer','var') && isvalid(Btimer)
             delete(Btimer);

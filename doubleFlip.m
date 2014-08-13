@@ -187,12 +187,8 @@ function [B]=doubleFlip(mag_axis,tq_axis,tq_num,com,baud,gain,ADCgain)
         xlabel('Flip Number');
         ylabel('Magnetic Field [Gauss]');
         Title('Y Sensor');
-        %add functions folder to path
-        oldp=addpath('Z:\ADCS\functions');
         %save plot
         fig_export('Z:\ADCS\figures\soubleFlip.eps');
-        %restore path
-        path(oldp);
     catch err
         if exist('ser','var')
             record(ser,'off');

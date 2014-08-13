@@ -301,9 +301,7 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,tq_axis,cor,com,baud,gain,ADCg
         legend('Location','NorthEastOutside');
         axis('square');
         axis('equal');
-        oldp=addpath('Z:\ADCS\functions');
         fig_export('Z:\ADCS\figures\torqueCalTst.eps');
-        path(oldp);
         figure(2);
         clf
         %sample number
@@ -321,12 +319,8 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,tq_axis,cor,com,baud,gain,ADCg
         xlabel('Sample Number');
         ylabel('Error [Gauss]');
         
-        %add functions folder to path
-        oldp=addpath('Z:\ADCS\functions');
         %save plot
         fig_export('Z:\ADCS\figures\torqueCalTst-err.eps');
-        %restore path
-        path(oldp);
         %create new figure and add torquer status subplot
         figure(3);
         clf
@@ -365,12 +359,8 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,tq_axis,cor,com,baud,gain,ADCg
         end
         %link subplots x-axis
         linkaxes([s1,s2],'x');
-        %add functions folder to path
-        oldp=addpath('Z:\ADCS\functions');
         %save plot
         fig_export('Z:\ADCS\figures\torqueCalTst-err-flips.eps');
-        %restore path
-        path(oldp);
     catch err
         if exist('ser','var')
             record(ser,'off');

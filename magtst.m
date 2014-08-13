@@ -8,7 +8,7 @@ function magtst(com,baud)
     
     try
         %add functions from commandlib
-        oldpath=addpath('Z:\ADCS\functions','Z:\Software\Libraries\commands\Matlab','-end');
+        oldpath=addpath('Z:\Software\Libraries\commands\Matlab','-end');
         %open serial port
         ser=serial(com,'BaudRate',baud);
         %set input buffer size

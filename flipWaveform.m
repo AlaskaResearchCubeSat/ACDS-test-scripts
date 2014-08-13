@@ -37,7 +37,7 @@ function [I,B,t]=flipWaveform(com,Os_addr,axis,num,dir,inst_setup,baud)
 
     try
         %add functions from commandlib
-        oldpath=addpath('Z:\ADCS\functions','Z:\Software\Libraries\commands\Matlab','-end');
+        oldpath=addpath('Z:\Software\Libraries\commands\Matlab','-end');
         %check if a serial object was given instead of a port name
         if(isa(com,'serial'))
             %use already open port

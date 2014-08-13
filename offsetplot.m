@@ -80,11 +80,7 @@ function offsetplot(cor,boards)
     %setup figure for printing
     set(gcf,'PaperPositionMode','auto');
     
-    %add functions folder to path
-    oldp=addpath('Z:\ADCS\functions');
     %save plot
     fig_export('Z:\ADCS\figures\board-offsets.eps');
-    %restore path
-    path(oldp);
     
 end

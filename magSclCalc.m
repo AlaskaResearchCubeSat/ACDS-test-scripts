@@ -178,12 +178,8 @@ function [cor,erms]=magSclCalc(mag_axis,com,baud,gain,ADCgain,a)
         legend('Location','NorthEastOutside');
         axis('square');
         axis('equal');
-        %add functions folder to path
-        oldp=addpath('Z:\ADCS\functions');
         %save plot
         fig_export('Z:\ADCS\figures\cor.eps');
-        %restore path
-        path(oldp);
     catch err
         if exist('ser','var')
             if strcmp(ser.Status,'open') && ~isa(com,'serial')

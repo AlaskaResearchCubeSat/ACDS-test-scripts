@@ -22,7 +22,7 @@ function multiflip(com,Os_addr,axis,num,dir,baud)
     mag_offset=2.49;       %offset of magnetomitor [V]
     try
         %add functions from commandlib
-        oldpath=addpath('Z:\ADCS\functions','Z:\Software\Libraries\commands\Matlab','-end');
+        oldpath=addpath('Z:\Software\Libraries\commands\Matlab','-end');
         %check if a serial object was given instead of a port name
         if(isa(com,'serial'))
             %use already open port
