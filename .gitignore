@@ -2,3 +2,5 @@
 rotateXLabels.m
 *.cal
 *.txt
+/figures/**
+/dat/**
