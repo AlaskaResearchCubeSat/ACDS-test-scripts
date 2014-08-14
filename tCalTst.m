@@ -258,6 +258,8 @@ function [flips,stat,stat_index]=tCalTst(mag_axis,tq_axis,cor,com,baud,gain,ADCg
                 asyncClose(ser);
             end
         end
+        %create dat directory
+        mkdir(fullfile('.','dat'));
         %get unique file name
         savename=unique_fliename(fullfile('.','dat','torqueCalTst.mat'));
         %save data

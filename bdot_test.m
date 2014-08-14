@@ -115,6 +115,8 @@ function [field,bdot,Mcmd,torque]=bdot_test(com,baud,a)
         %delete timer
         delete(Btimer);
         
+        %create dat directory
+        mkdir(fullfile('.','dat'));
         %get unique file name
         savename=unique_fliename(fullfile('.','dat','detumble-test.mat'));
         %save data

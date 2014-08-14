@@ -237,6 +237,8 @@ function [flips,stat,stat_index,lines]=tCalTstMSP_single(mag_axis,com,baud,a,fli
         end
         %exit async connection
         asyncClose(ser);
+        %create dat directory
+        mkdir(fullfile('.','dat'));
         %get unique file name
         savename=unique_fliename(fullfile('.','dat','torqueCalTst-single.mat'));
         %save data

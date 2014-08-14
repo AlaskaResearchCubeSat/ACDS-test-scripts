@@ -119,6 +119,8 @@ function [cor,erms]=magSclCalc(mag_axis,com,baud,gain,ADCgain,a)
                rethrow(err);
             end    
         end
+        %create dat directory
+        mkdir(fullfile('.','dat'));
         %get unique file name
         savename=unique_fliename(fullfile('.','dat','magSclCalc.mat'));
         %save data

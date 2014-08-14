@@ -159,6 +159,8 @@ function [I,B,t]=flipWaveform(com,Os_addr,axis,num,dir,inst_setup,baud)
         idx=find(dat(1,:)>-0.05e-3);
         
         if(nargout>0)
+            %create dat directory
+            mkdir(fullfile('.','dat'));
             %get unique file name
             savename=unique_fliename(fullfile('.','dat','flip-waveform.mat'));
             %save data

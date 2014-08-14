@@ -5,6 +5,8 @@ function tCalTstFull_plot(savefile)
     load(savefile);
     %get base filename
     [~,basename,~]=fileparts(savefile);
+    %make figures directory
+    mkdir(fullfile('.','figures'));
     %new figure
     figure(1);
     clf
