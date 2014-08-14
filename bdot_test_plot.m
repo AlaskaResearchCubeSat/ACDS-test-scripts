@@ -12,7 +12,7 @@ function bdot_test_plot(savefile)
     clf;
 
     M_cmd_lim=0.022;
-    sn=1:length(lines);
+    sn=1:length(torque);
     [x1,y1]=stairs(sn,M_cmd_lim*torque(:,1));
     [x2,y2]=stairs(sn,M_cmd_lim*torque(:,2));
     [x3,y3]=stairs(sn,M_cmd_lim*torque(:,3));
