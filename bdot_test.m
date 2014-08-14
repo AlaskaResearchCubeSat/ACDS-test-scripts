@@ -26,7 +26,7 @@ function [field,bdot,Mcmd,torque]=bdot_test(com,baud,a)
     %setup magnetic field
     Bs=0.3*[sin(theta);cos(theta);0*theta];
 
-    lines=cell(1,50);
+    lines=cell(1,500);
     
     try
         %add functions from commandlib
@@ -116,7 +116,7 @@ function [field,bdot,Mcmd,torque]=bdot_test(com,baud,a)
         delete(Btimer);
         
         %create dat directory
-        mkdir(fullfile('.','dat'));
+        quiet_mkdir(fullfile('.','dat'));
         %get unique file name
         savename=unique_fliename(fullfile('.','dat','detumble-test.mat'));
         %save data

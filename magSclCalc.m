@@ -36,6 +36,8 @@ function [cor,erms]=magSclCalc(mag_axis,com,baud,gain,ADCgain,a)
         if(isa(com,'serial'))
             %use already open port
             ser=com;
+            %clear com var so it doesn't get saved
+            clear com;
             %check for bytes in buffer
             bytes=ser.BytesAvailable;
             if(bytes~=0)
@@ -120,20 +122,20 @@ function [cor,erms]=magSclCalc(mag_axis,com,baud,gain,ADCgain,a)
             end    
         end
         %create dat directory
-        mkdir(fullfile('.','dat'));
+        quiet_mkdir(fullfile('.','dat'));
         %get unique file name
         savename=unique_fliename(fullfile('.','dat','magSclCalc.mat'));
         %save data
-        save(savename);
+        save(savename,'-regexp','^(?!(cc|ser)$).');
         %generate plots from datafile
         bdot_test_plot(savename);
     catch err
         if exist('ser','var')
-            if strcmp(ser.Status,'open') && ~isa(com,'serial')
+            if strcmp(ser.Status,'open') && exist('com','var')
                 fclose(ser);
             end
             %check if port was open
-            if(~isa(com,'serial'))
+            if(exist('com','var'))
                 delete(ser);
             end
         end
@@ -144,11 +146,9 @@ function [cor,erms]=magSclCalc(mag_axis,com,baud,gain,ADCgain,a)
     end
     if exist('ser','var')
         if strcmp(ser.Status,'open')
-            %print ^c to stop running
-            fprintf(ser,'%c',03);
             while ser.BytesToOutput
             end
-            if(~isa(com,'serial'))
+            if(exist('com','var'))
                 fclose(ser);
             end
         end

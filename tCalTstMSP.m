@@ -216,7 +216,7 @@ function [flips,stat,stat_index]=tCalTstMSP(com,baud,a)
         %exit async connection
         asyncClose(ser);
         %create dat directory
-        mkdir(fullfile('.','dat'));
+        quiet_mkdir(fullfile('.','dat'));
         %get unique file name
         savename=unique_fliename(fullfile('.','dat','torqueCalTstMSP.mat'));
         %save data

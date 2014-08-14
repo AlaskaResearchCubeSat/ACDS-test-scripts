@@ -6,7 +6,7 @@ function magSclCalc_plot(savefile)
     %get base filename
     [~,basename,~]=fileparts(savefile);
     %make figures directory
-    mkdir(fullfile('.','figures'));
+    quiet_mkdir(fullfile('.','figures'));
     %clear figure data
     clf
     hold on

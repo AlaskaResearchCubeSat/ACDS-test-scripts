@@ -5,7 +5,7 @@ function tCalTstMSP_single_plot(savefile)
     load(savefile);
     [~,basename,~]=fileparts(savefile);
     %make figures directory
-    mkdir(fullfile('.','figures'));
+    quiet_mkdir(fullfile('.','figures'));
     %create figure
     figure(1);
     clf

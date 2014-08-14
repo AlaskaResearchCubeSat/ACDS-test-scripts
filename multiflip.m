@@ -133,7 +133,7 @@ function multiflip(com,Os_addr,axis,num,dir,baud)
         
         
         %create dat directory
-        mkdir(fullfile('.','dat'));
+        quiet_mkdir(fullfile('.','dat'));
         %get unique file name
         savename=unique_fliename(fullfile('.','dat','multiflip.mat'));
         %save data

@@ -6,7 +6,7 @@ function tCalTstMSP_all_plot(savefile)
     %get base filename
     [~,basename,~]=fileparts(savefile);
     %make figures directory
-    mkdir(fullfile('.','figures'));
+    quiet_mkdir(fullfile('.','figures'));
     %create figure
     figure(1);
     clf

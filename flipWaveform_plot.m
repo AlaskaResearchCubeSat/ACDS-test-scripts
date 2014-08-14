@@ -6,7 +6,7 @@ function flipWaveform_plot(savefile)
     %get base filename
     [~,basename,~]=fileparts(savefile);
     %make figures directory
-    mkdir(fullfile('.','figures'));
+    quiet_mkdir(fullfile('.','figures'));
     %create figure
     figure;
     subplot(2,1,2);

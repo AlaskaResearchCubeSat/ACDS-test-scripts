@@ -238,11 +238,11 @@ function [flips,stat,stat_index,lines]=tCalTstMSP_single(mag_axis,com,baud,a,fli
         %exit async connection
         asyncClose(ser);
         %create dat directory
-        mkdir(fullfile('.','dat'));
+        quiet_mkdir(fullfile('.','dat'));
         %get unique file name
         savename=unique_fliename(fullfile('.','dat','torqueCalTst-single.mat'));
         %save data
-        save(savename);
+        save(savename,'-regexp','^(?!(cc|ser)$).');
         %generate plots from datafile
         tCalTstMSP_single_plot(savename);
     catch err
@@ -262,8 +262,6 @@ function [flips,stat,stat_index,lines]=tCalTstMSP_single(mag_axis,com,baud,a,fli
     end
     if exist('ser','var')
         if strcmp(ser.Status,'open')
-            %print Q to stop simulation
-            fprintf(ser,'Q');
             while ser.BytesToOutput
             end
             record(ser,'off');
@@ -276,65 +274,6 @@ function [flips,stat,stat_index,lines]=tCalTstMSP_single(mag_axis,com,baud,a,fli
     end
     %restore old path
     path(oldpath);
-end
-
-function [stat]=stat_strip(line)
-    sts=textscan(line,'%[+-?!?] %[+-!?] %[+-!?] %*d %*d %*d');  
-    %get lengths of each status
-    lx=length(sts{1});
-    ly=length(sts{2});
-    lz=length(sts{3});
-    %check if status was read
-    if(lx==0)
-        error('Failed to parse status from line ''%s''',line);
-    end
-    %check lengths
-    if(lx~=ly || ly~=lz)
-        error('Inconsistant status lengths %i %i %i',lx,ly,lz);
-    end
-    %reformat status
-    stat=sprintf('%s %s %s',sts{1},sts{2},sts{3});
-end
-
-function [dat]=stat_dat(line)
-    sts=textscan(line,'%[+-?!?] %[+-!?] %[+-!?] %*d %*d %*d');  
-    %get lengths of each status
-    lx=length(sts{1});
-    ly=length(sts{2});
-    lz=length(sts{3});
-    %check if status was read
-    if(lx==0)
-        error('Failed to parse status from line ''%s''',line);
-    end
-    %check lengths
-    if(lx~=ly || ly~=lz)
-        error('Inconsistant status lengths %i %i %i',lx,ly,lz);
-    end
-    stsx=reshape(char(sts{1}),1,[]);
-    stsy=reshape(char(sts{2}),1,[]);
-    stsz=reshape(char(sts{3}),1,[]);
-    %reformat status
-    dat=[stsx;stsy;stsz];
-end
-
-function [len]=stat_length(line)
-    sts=textscan(line,'%[?!+-] %[+-!?] %[!?+-] %*d %*d %*d');
-    %check for errors
-    if(isempty(sts{1}) || isempty(sts{2}) || isempty(sts{3}))
-        error('Failed to parse status from line ''%s''',line);
-    end
-    lx=length(sts{1}{:});
-    ly=length(sts{2}{:});
-    lz=length(sts{3}{:});
-    %check if status was read
-    if(lx==0)
-        error('Failed to parse status from line ''%s''',line);
-    end
-    %make sure lenghts are consistant
-    if(lx~=ly || ly~=lz)
-        error('Inconsistant status lengths %i %i %i',lx,ly,lz);
-    end
-    len=lx;
 end
 
 function [tq,dir]=random_flip(stat)
@@ -355,26 +294,3 @@ function [tq,dir]=random_flip(stat)
     end
 end
 
-function statchk(stat)
-    axis={'X','Y','Z'};
-    for k=1:3
-        err=strfind(stat(k,:),'!');
-        if ~isempty(err)
-            error('Error with %s-Axis torquer #%d.',axis{k},err(1));
-        end
-        err=strfind(stat(k,:),'?');
-        if ~isempty(err)
-            error('%s-Axis torquer #%d is uninitialized.',axis{k},err(1));
-        end
-    end
-end
-
-
-function idx=stat2Idx(stat,idx)
-    %strip status info
-    stat=stat_dat(stat);
-    %check for torquer errors
-    statchk(stat);
-    %only include the z-axis
-    idx=sum((('-'-stat(idx,:))/2).*2.^(0:3))+1;
-end
