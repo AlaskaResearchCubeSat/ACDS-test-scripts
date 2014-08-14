@@ -220,7 +220,7 @@ function [flips,stat,stat_index]=tCalTstMSP(com,baud,a)
         %get unique file name
         savename=unique_fliename(fullfile('.','dat','torqueCalTstMSP.mat'));
         %save data
-        save(savename);
+        save(savename,'-regexp','^(?!(cc|ser)$).');
         %generate plots from datafile
         tCalTstFull_plot(savename);
     catch err
@@ -240,8 +240,6 @@ function [flips,stat,stat_index]=tCalTstMSP(com,baud,a)
     end
     if exist('ser','var')
         if strcmp(ser.Status,'open')
-            %print Q to stop simulation
-            fprintf(ser,'Q');
             while ser.BytesToOutput
             end
             record(ser,'off');

@@ -120,7 +120,7 @@ function [field,bdot,Mcmd,torque]=bdot_test(com,baud,a)
         %get unique file name
         savename=unique_fliename(fullfile('.','dat','detumble-test.mat'));
         %save data
-        save(savename);
+        save(savename,'-regexp','^(?!(cc|Btimer|ser)$).');
         %generate plots from datafile
         bdot_test_plot(savename);
     catch err

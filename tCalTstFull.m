@@ -231,7 +231,7 @@ function [flips,stat,stat_index]=tCalTstFull(mag_axis,cor,com,baud,gain,ADCgain,
         %get unique file name
         savename=unique_fliename(fullfile('.','dat','torqueCalTst.mat'));
         %save data
-        save(savename);
+        save(savename,'-regexp','^(?!(cc|ser)$).');
         %generate plots from datafile
         tCalTstFull_plot(savename);
     catch err
@@ -251,8 +251,6 @@ function [flips,stat,stat_index]=tCalTstFull(mag_axis,cor,com,baud,gain,ADCgain,
     end
     if exist('ser','var')
         if strcmp(ser.Status,'open')
-            %print Q to stop simulation
-            fprintf(ser,'Q');
             while ser.BytesToOutput
             end
             record(ser,'off');

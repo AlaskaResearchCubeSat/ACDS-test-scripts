@@ -42,6 +42,8 @@ function [I,B,t]=flipWaveform(com,Os_addr,axis,num,dir,inst_setup,baud)
         if(isa(com,'serial'))
             %use already open port
             ser=com;
+            %clear com so it dosn't get saved
+            clear com;
             %check for bytes in buffer
             bytes=ser.BytesAvailable;
             if(bytes~=0)
@@ -74,6 +76,8 @@ function [I,B,t]=flipWaveform(com,Os_addr,axis,num,dir,inst_setup,baud)
         %check if class is an open instrament control
         elseif(isa(Os_addr,'icinterface'))
             Os_control=Os_addr;
+            %clear old var
+            clear Os_addr;
         else
             %otherwise open GPIB port
             Os_control=gpib('ni',0,Os_addr);
@@ -164,7 +168,7 @@ function [I,B,t]=flipWaveform(com,Os_addr,axis,num,dir,inst_setup,baud)
             %get unique file name
             savename=unique_fliename(fullfile('.','dat','flip-waveform.mat'));
             %save data
-            save(savename);
+            save(savename,'-regexp','^(?!(Os_control|ser)$).');
             %generate plots from datafile
             flipWaveform_plot(savename);
         end
@@ -188,16 +192,13 @@ function [I,B,t]=flipWaveform(com,Os_addr,axis,num,dir,inst_setup,baud)
             end
         end
         %Close Scope communication if open
-        if exist('Os_control','var') && ~isa(Os_addr,'icinterface')
+        if exist('Os_control','var') && exist('Os_addr','var')
             if strcmp(Os_control.Status,'open')
                 %restore front pannel controls
                 fprintf(Os_control,'SYSTEM:LOCK OFF');
                 fclose(Os_control);
             end
             delete(Os_control);
-        end
-        if exist('cc','var')
-            delete(cc);
         end
         %restore old path
         path(oldpath);
@@ -206,15 +207,15 @@ function [I,B,t]=flipWaveform(com,Os_addr,axis,num,dir,inst_setup,baud)
     if exist('ser','var')
         if strcmp(ser.Status,'open')
             record(ser,'off');
-            %check if port was open
-            if(~isa(com,'serial'))
+            %check if port name was given
+            if(exist('com','var'))
                 %exit async connection
                 asyncClose(ser);
                 fclose(ser);
             end
         end
         %check if port was open
-        if(~isa(com,'serial'))
+        if(exist('com','var'))
             delete(ser);
         end
     end
@@ -226,9 +227,6 @@ function [I,B,t]=flipWaveform(com,Os_addr,axis,num,dir,inst_setup,baud)
             fclose(Os_control);
         end
         delete(Os_control);
-    end
-    if exist('cc','var')
-        delete(cc);
     end
     %restore old path
     path(oldpath);
