@@ -80,6 +80,11 @@ function cor=store_all_cal(com,baud,gain,ADCgain,store_axis)
         %connect to the ACDS board
         asyncOpen(ser,'ACDS');
         
+        %create dat directory
+        quiet_mkdir(fullfile('.','dat'));
+        %save correction data to file as well as the axes used and gains
+        save(fullfile('.','dat','cor.mat'),'cor','store_axis','gain','ADCgain');
+        
         fprintf('Unpacking correction data\n');
         
         for k=1:length(store_axis)
