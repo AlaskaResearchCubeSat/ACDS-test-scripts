@@ -57,9 +57,16 @@ function tCalTstFull_plot(savefile)
     else
         legend('Commanded','Scale only Corrected','Corrected');
     end
-    legend('Location','NorthEastOutside');
-    axis('square');
-    axis('equal');
+    legend('Location','NorthEast');
+    %set both axes equaly spaced
+    set(gca,'DataAspectRatio',[1 1 1]);
+    %get axis limits
+    lim=get(gca,{'Xlim','Ylim'});
+    %get new limits from extents of the old limits
+    lim=max(abs([lim{:}]));
+    %set new limits to both axes
+    axis([-lim lim -lim lim]);
+    %export figure
     fig_export(fullfile('.','figures',[basename,'.eps']));
     figure(2);
     clf
@@ -77,7 +84,7 @@ function tCalTstFull_plot(savefile)
     legend('X error','Y error','error magnitude');
     xlabel('Sample Number');
     ylabel('Error [Gauss]');
-
+    
     %save plot
     fig_export(fullfile('.','figures',[basename,'-err.eps']));
     %create new figure and add torquer status subplot
