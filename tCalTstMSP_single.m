@@ -52,8 +52,6 @@ function [flips,stat,stat_index,lines]=tCalTstMSP_single(mag_axis,com,baud,a,fli
     lines=cell(length(Bs),1);
 
     try
-        %add functions from commandlib
-        oldpath=addpath('Z:\Software\Libraries\commands\Matlab','-end');
         cc=cage_control();
         cc.loadCal('calibration.cal');
         %open serial port
@@ -256,8 +254,6 @@ function [flips,stat,stat_index,lines]=tCalTstMSP_single(mag_axis,com,baud,a,fli
         if exist('cc','var')
             delete(cc);
         end
-        %restore old path
-        path(oldpath);
         rethrow(err);
     end
     if exist('ser','var')
@@ -272,8 +268,6 @@ function [flips,stat,stat_index,lines]=tCalTstMSP_single(mag_axis,com,baud,a,fli
     if exist('cc','var')
         delete(cc);
     end
-    %restore old path
-    path(oldpath);
 end
 
 function [tq,dir]=random_flip(stat)

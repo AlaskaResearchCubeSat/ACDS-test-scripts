@@ -11,8 +11,6 @@ function status_fail(com,baud,num)
         num=80000;
     end
     try
-        %add functions from commandlib
-        oldpath=addpath('Z:\Software\Libraries\commands\Matlab','-end');
         %open serial port
         ser=serial(com,'BaudRate',baud);
        
@@ -93,8 +91,6 @@ function status_fail(com,baud,num)
             end
             delete(ser);
         end
-        %restore old path
-        path(oldpath);
         rethrow(err);
     end
     if exist('cc','var')
@@ -108,8 +104,6 @@ function status_fail(com,baud,num)
         end
         delete(ser);
     end
-    %restore old path
-    path(oldpath);
 end
 
  

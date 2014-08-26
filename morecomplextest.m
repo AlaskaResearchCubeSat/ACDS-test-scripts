@@ -27,8 +27,6 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
     retry=0;
     
     try
-        %add functions from commandlib
-        oldpath=addpath('Z:\Software\Libraries\commands\Matlab','-end');
         %open serial port
         ser=serial(com,'BaudRate',baud);
        
@@ -283,8 +281,6 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
             delete(ser);
         end
         fprintf('Total Number of retries %i\n',retry);
-        %restore old path
-        path(oldpath);
         rethrow(err);
     end
     if exist('ser','var')
@@ -297,8 +293,6 @@ function [xdat,ydat,zdat] = morecomplextest(com,baud)
         end
         delete(ser);
     end
-    %restore old path
-    path(oldpath);
     fprintf('Total Number of retries %i\n',retry);
     
     clf;

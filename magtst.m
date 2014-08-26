@@ -7,8 +7,6 @@ function magtst(com,baud)
     end
     
     try
-        %add functions from commandlib
-        oldpath=addpath('Z:\Software\Libraries\commands\Matlab','-end');
         %open serial port
         ser=serial(com,'BaudRate',baud);
         %set input buffer size
@@ -91,8 +89,6 @@ function magtst(com,baud)
             end
             delete(ser);
         end
-        %restore old path
-        path(oldpath);
         rethrow(err);
     end
     if exist('ser','var')
@@ -101,6 +97,4 @@ function magtst(com,baud)
         end
         delete(ser);
     end
-    %restore old path
-    path(oldpath);
 end

@@ -52,8 +52,6 @@ function [flips,stat,stat_index]=tCalTstFull(mag_axis,cor,com,baud,gain,ADCgain,
     stat_index=zeros(floor(length(Bs)/10)+1,3);
 
     try
-        %add functions from commandlib
-        oldpath=addpath('Z:\Software\Libraries\commands\Matlab','-end');
         cc=cage_control();
         cc.loadCal('calibration.cal');
         %open serial port
@@ -245,8 +243,6 @@ function [flips,stat,stat_index]=tCalTstFull(mag_axis,cor,com,baud,gain,ADCgain,
         if exist('cc','var')
             delete(cc);
         end
-        %restore old path
-        path(oldpath);
         rethrow(err);
     end
     if exist('ser','var')
@@ -261,8 +257,6 @@ function [flips,stat,stat_index]=tCalTstFull(mag_axis,cor,com,baud,gain,ADCgain,
     if exist('cc','var')
         delete(cc);
     end
-    %restore old path
-    path(oldpath);
 end
 
 function [tq,dir]=random_flip(stat)

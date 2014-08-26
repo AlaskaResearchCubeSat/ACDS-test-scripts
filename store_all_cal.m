@@ -24,8 +24,6 @@ function cor=store_all_cal(com,baud,gain,ADCgain,store_axis)
        };
     
     try
-        %add functions from commandlib
-        oldpath=addpath('Z:\Software\Libraries\commands\Matlab','-end');
         %open serial port
         ser=serial(com,'BaudRate',baud);
         %set input buffer size
@@ -101,8 +99,6 @@ function cor=store_all_cal(com,baud,gain,ADCgain,store_axis)
             end
             delete(ser);
         end
-        %restore old path
-        path(oldpath);
         rethrow(err);
     end
     if exist('ser','var')
@@ -111,6 +107,4 @@ function cor=store_all_cal(com,baud,gain,ADCgain,store_axis)
         end
         delete(ser);
     end
-    %restore old path
-    path(oldpath);
 end

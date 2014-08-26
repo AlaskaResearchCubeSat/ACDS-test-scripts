@@ -16,8 +16,6 @@ function [p] = noise_test(mag_axis,com,baud,gain,ADCgain)
         ADCgain=[];
     end
     try
-        %add functions from commandlib
-        oldpath=addpath('Z:\Software\Libraries\commands\Matlab','-end');
         %open serial port
         ser=serial(com,'BaudRate',baud);
        
@@ -88,8 +86,6 @@ function [p] = noise_test(mag_axis,com,baud,gain,ADCgain)
             end
             delete(ser);
         end
-        %restore old path
-        path(oldpath);
         rethrow(err);
     end
     if exist('cc','var')
@@ -105,6 +101,4 @@ function [p] = noise_test(mag_axis,com,baud,gain,ADCgain)
         end
         delete(ser);
     end
-    %restore old path
-    path(oldpath);
 end

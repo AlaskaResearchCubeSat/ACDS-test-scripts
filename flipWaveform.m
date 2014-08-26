@@ -36,8 +36,6 @@ function [I,B,t]=flipWaveform(com,Os_addr,axis,num,dir,inst_setup,baud)
     Bfilt=fir1(30,0.5);
 
     try
-        %add functions from commandlib
-        oldpath=addpath('Z:\Software\Libraries\commands\Matlab','-end');
         %check if a serial object was given instead of a port name
         if(isa(com,'serial'))
             %use already open port
@@ -200,8 +198,6 @@ function [I,B,t]=flipWaveform(com,Os_addr,axis,num,dir,inst_setup,baud)
             end
             delete(Os_control);
         end
-        %restore old path
-        path(oldpath);
         rethrow(err);
     end
     if exist('ser','var')
@@ -228,6 +224,4 @@ function [I,B,t]=flipWaveform(com,Os_addr,axis,num,dir,inst_setup,baud)
         end
         delete(Os_control);
     end
-    %restore old path
-    path(oldpath);
 end

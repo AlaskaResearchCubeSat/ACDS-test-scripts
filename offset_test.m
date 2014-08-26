@@ -25,8 +25,6 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
     %current number of retries
     retry=0;
     try
-        %add functions from commandlib
-        oldpath=addpath('Z:\Software\Libraries\commands\Matlab','-end');
         %open serial port
         ser=serial(com,'BaudRate',baud);
        
@@ -236,8 +234,6 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
             delete(ser);
         end
         fprintf('Total Number of retries %i\n',retry+1);
-        %restore old path
-        path(oldpath);
         rethrow(err);
     end
     if exist('cc','var')
@@ -251,7 +247,5 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
         end
         delete(ser);
     end
-    %restore old path
-    path(oldpath);
     fprintf('Total Number of retries %i\n',retry+1);
 end

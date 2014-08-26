@@ -29,8 +29,6 @@ function [field,bdot,Mcmd,torque]=bdot_test(com,baud,a)
     lines=cell(1,500);
     
     try
-        %add functions from commandlib
-        oldpath=addpath('Z:\Software\Libraries\commands\Matlab','-end');
         cc=cage_control();
         cc.loadCal('calibration.cal');
         
@@ -137,8 +135,6 @@ function [field,bdot,Mcmd,torque]=bdot_test(com,baud,a)
         if exist('cc','var')
             delete(cc);
         end
-        %restore old path
-        path(oldpath);
         rethrow(err);
     end
     if exist('ser','var')
@@ -155,8 +151,6 @@ function [field,bdot,Mcmd,torque]=bdot_test(com,baud,a)
     if exist('cc','var')
         delete(cc);
     end
-    %restore old path
-    path(oldpath);
 end
 
 function nextField(obj,~,field,cc,a)
