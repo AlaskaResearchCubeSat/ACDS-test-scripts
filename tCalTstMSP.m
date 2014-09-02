@@ -220,7 +220,7 @@ function [flips,stat,stat_index]=tCalTstMSP(com,baud,a)
         %save data
         save(savename,'-regexp','^(?!(cc|ser)$).');
         %generate plots from datafile
-        tCalTstFull_plot(savename);
+        tCalTstMSP_plot(savename);
     catch err
         if exist('ser','var')
             record(ser,'off');
