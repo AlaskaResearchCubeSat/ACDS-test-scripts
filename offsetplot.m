@@ -62,6 +62,8 @@ function offsetplot(cor,boards)
         end
         hold off;
         legend(plots);
+        %lable Y-axis
+        ylabel('Field Offset [Gauss]');
         %set lables
         set(gca,'XTick',Tidx);
         if(k==3)
