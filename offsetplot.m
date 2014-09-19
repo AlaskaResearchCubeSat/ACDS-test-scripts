@@ -66,16 +66,29 @@ function offsetplot(cor,boards)
         ylabel('Field Offset [Gauss]');
         %set lables
         set(gca,'XTick',Tidx);
+        %get plot position
+        p=get(sp(k),'Position');
+        shift=0.06;
+        streach=0.04;
         if(k==3)
+            allp=get(sp,'Position');
+            p(4)=p(4)+streach;
+            p(2)=2*allp{2}(2)-allp{1}(2);
             set(gca,'XTickLabel',lables);
             xlabel('Torquer State');
             %rotate tick lables so they are visable
             %available:
             %http://www.mathworks.com/matlabcentral/fileexchange/45172-rotatexlabels
             rotateXLabels(gca,45);
+            set(gca,'FontName','FixedWidth');
+            set(gca,'FontSize',10);
         else
             set(gca,'XTickLabel',{});
+            p(2)=p(2)+shift/(3-k);
+            p(4)=p(4)+streach;
         end
+        %set plot position
+        set(sp(k),'Position',p);
     end
     %link plot axis
     linkaxes(sp,'xy');
@@ -86,5 +99,4 @@ function offsetplot(cor,boards)
     
     %save plot
     fig_export('./figures/board-offsets.eps');
-    
 end
