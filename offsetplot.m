@@ -85,6 +85,6 @@ function offsetplot(cor,boards)
     set(gcf,'PaperPositionMode','auto');
     
     %save plot
-    fig_export('Z:\ADCS\figures\board-offsets.eps');
+    fig_export('./figures/board-offsets.eps');
     
 end
