@@ -1,4 +1,4 @@
-function [field,bdot,Mcmd,torque]=bdot_test(com,baud,a)
+function [field,bdot,Mcmd,torque]=bdot_test(com,baud,a,filter)
     if(~exist('baud','var') || isempty(baud))
         baud=57600;
     end
@@ -15,6 +15,25 @@ function [field,bdot,Mcmd,torque]=bdot_test(com,baud,a)
         end
     end
     
+    if(~exist('filter','var') || isempty(filter))
+        %if no transform is given then use unity
+        %coult use identity matrix but 1 is faster and will work
+        filter='';
+    else
+        %check if filter is not a char
+        if(~isa(filter,'char'))
+            %treat as logical
+            if filter
+                %true, turn filter on
+                filter='on';
+            else
+                %false, turn filter off
+                filter='off';
+            end
+        end
+        %otherwise keep char value
+    end
+    
     %output sample rate
     T=0.5;
     %rotation rate of field
@@ -26,7 +45,7 @@ function [field,bdot,Mcmd,torque]=bdot_test(com,baud,a)
     %setup magnetic field
     Bs=0.3*[sin(theta);cos(theta);0*theta];
 
-    lines=cell(1,500);
+    lines=cell(1,100);
     
     try
         cc=cage_control();
@@ -72,7 +91,16 @@ function [field,bdot,Mcmd,torque]=bdot_test(com,baud,a)
         
         if ~waitReady(ser,30)
             error('Error : Could not communicate with prototype. Check connections');
-        end    
+        end   
+        
+        pause(1);
+        
+        %set filter
+        command(ser,'filter %s',filter);
+        
+        if ~waitReady(ser,30)
+            error('Error : Could not communicate with prototype. Check connections');
+        end  
 
         %set initial field
         cc.Bs=a*Bs(:,1);
