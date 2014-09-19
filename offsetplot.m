@@ -69,7 +69,7 @@ function offsetplot(cor,boards)
         %get plot position
         p=get(sp(k),'Position');
         shift=0.06;
-        streach=0.04;
+        streach=0.03;
         if(k==3)
             allp=get(sp,'Position');
             p(4)=p(4)+streach;
