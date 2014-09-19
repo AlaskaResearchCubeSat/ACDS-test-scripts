@@ -32,7 +32,7 @@ function offsetplot(cor,boards)
     
     for k=1:3
         %subplot for each axis
-        subplot(3,1,k);
+        sp(k)=subplot(3,1,k);
         hold on;
         cm=lines(5);
         cm_idx=1;
@@ -75,6 +75,8 @@ function offsetplot(cor,boards)
             set(gca,'XTickLabel',{});
         end
     end
+    %link plot axis
+    linkaxes(sp,'xy');
     fprintf('=============================================================================\n');
     
     %setup figure for printing
