@@ -18,9 +18,9 @@ function cor=store_all_cal(com,baud,gain,ADCgain,store_axis)
     end
     
     %rotation matricies for SPB's
-    a={[0 0 1;-1 0 0;0 1 0],[0 0 1;-1 0 0;0 -1 0],...           %X +/-
-       [-1 0 0;0 0 1;0 1 0],[1 0  0;0 0 -1;0 1 0],...             %Y +/-
-       [0 1 0;1 0 0;0 0 -1],[1 0 0;0 1 0;0 0 1],...             %Z +/-
+    a={make_spb_rot([0 -1 0],[0 0 -1]),make_spb_rot([0  1 0],[0 0 -1]),...           %X +/-
+       make_spb_rot([ 1 0 0],[0 0 -1]),make_spb_rot([-1 0 0],[0 0 -1]),...             %Y +/-
+       make_spb_rot([ 1 0 0],[0  1 0]),make_spb_rot([ 1 0 0],[0 -1 0]),...             %Z +/-
        };
     
     try
