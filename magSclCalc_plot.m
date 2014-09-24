@@ -1,4 +1,4 @@
-function magSclCalc_plot(savefile)
+function [cor]=magSclCalc_plot(savefile)
     %plot data from magSclCalc function stored in savefile
 
     %load data
