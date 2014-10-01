@@ -99,6 +99,8 @@ function [cor,erms]=magSclCalc(mag_axis,com,baud,gain,ADCgain,a)
         cc.Bs=Bs(:,1);
         %give extra settaling time
         pause(1);
+        %clear figure
+        clf;
         
         for k=1:length(Bs)
             cc.Bs=a*Bs(:,k);
@@ -120,6 +122,13 @@ function [cor,erms]=magSclCalc(mag_axis,com,baud,gain,ADCgain,a)
                fprintf(2,'Could not parse line \"%s\"\n',line);
                rethrow(err);
             end    
+            
+            %plot data interactively
+            rng=1:k;
+            %plot data
+            plot(Bs(1,rng),Bs(2,rng),'r',magScale*meas(1,rng),magScale*meas(2,rng),'g',sensor(1,rng),sensor(2,rng),'b');
+            %force plot to be drawn
+            drawnow;
         end
         %create dat directory
         quiet_mkdir(fullfile('.','dat'));

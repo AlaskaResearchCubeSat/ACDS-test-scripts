@@ -260,6 +260,9 @@ function [cor,erms]=tCal(mag_axis,tq_axis,com,baud,gain,ADCgain,a)
 
             rng_err=0;
             
+            %clear figure
+            clf;
+            
             for k=1:length(Bs)
                 cc.Bs=a*Bs(:,k);
                 %pause to let the supply settle
@@ -288,6 +291,14 @@ function [cor,erms]=tCal(mag_axis,tq_axis,com,baud,gain,ADCgain,a)
                     rng_err=rng_err+1;
                     fprintf(2,'Value (%f %f) is out of range for sample #%i\n',meas(1:2,k+(idx)*length(Bs)),k);
                 end
+                
+                %plot data interactively
+                rng1=1:k;
+                rng2=rng1+(idx)*length(Bs);
+                %plot data
+                plot(Bs(1,rng1),Bs(2,rng1),'r',magScale*meas(1,rng2),magScale*meas(2,rng2),'g',sensor(1,rng2),sensor(2,rng2),'b');
+                %force plot to be drawn
+                drawnow;
             end
             
             if(rng_err)
