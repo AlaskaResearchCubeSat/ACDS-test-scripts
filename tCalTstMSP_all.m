@@ -1,4 +1,4 @@
-function [flips,stat,stat_index]=tCalTstMSP_all(com,baud,a)
+function [flips,stat,stat_index,lines]=tCalTstMSP_all(com,baud,a)
     if(~exist('baid','var') || isempty(baud))
         baud=57600;
     end
@@ -131,6 +131,9 @@ function [flips,stat,stat_index]=tCalTstMSP_all(com,baud,a)
         cc.Bs=a*Bs(:,1);
         %give extra settaling time
         pause(1);
+        
+        %initialize lines
+        lines=cell(1,length(Bs));
 
         for k=1:length(Bs)
             cc.Bs=a*Bs(:,k);
@@ -147,6 +150,8 @@ function [flips,stat,stat_index]=tCalTstMSP_all(com,baud,a)
                 try
                     %read measurments from prototype
                     line=fgetl(ser);
+                    %save line
+                    lines{k}=line;
                     %remove whitespace
                     line=deblank(line)';
                     if(~isempty(lastwarn))
