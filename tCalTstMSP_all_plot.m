@@ -7,40 +7,50 @@ function tCalTstMSP_all_plot(savefile)
     [~,basename,~]=fileparts(savefile);
     %make figures directory
     quiet_mkdir(fullfile('.','figures'));
+    
+    %rotate Bs
+    for k=1:length(Bs)
+        Bs(:,k)=a*Bs(:,k);
+    end
     %create figure
     figure(1);
     clf
     hold on
     %plot measured field
-    plot(sensor(1,:),sensor(2,:),'b');
+    plot3(sensor(1,:),sensor(2,:),sensor(3,:),'b');
     %plot commanded field
-    plot(Bs(1,:),Bs(2,:),'r');
+    plot3(Bs(1,:),Bs(2,:),Bs(3,:),'r');
     %plot corrected values
-    plot(meas(1,:),meas(2,:),'m');
+    plot3(meas(1,:),meas(2,:),meas(3,:),'m');
     %calculate center
-    c(1)=mean(meas(1,:));
-    c(2)=mean(meas(2,:));
+    c=mean(meas,2);
     %plot corrected center
-    hc=plot(c(1),c(2),'mo');
+    hc=plot3(c(1),c(2),c(3),'mo');
     set(get(get(hc,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
     %calculate center
     c=mean(sensor,2);
     %plot centers for measured
-    hc=plot(c(1),c(2),'b+');
+    hc=plot3(c(1),c(2),c(3),'b+');
     set(get(get(hc,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
     %calculate center
     c=mean(Bs,2);
     %plot centers for commanded
-    hc=plot(c(1),c(2),'rx');
+    hc=plot3(c(1),c(2),c(3),'rx');
     set(get(get(hc,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
     hold off
-    ylabel('Magnetic Field [gauss]');
-    xlabel('Magnetic Field [gauss]');
+    ylabel('Y Magnetic Field [gauss]');
+    xlabel('X Magnetic Field [gauss]');
+    zlabel('Z Magnetic Field [gauss]');
     legend('Measured','Commanded','Corrected');
     legend('Location','NorthEastOutside');
     axis('square');
     axis('equal');
     fig_export(fullfile('.','figures',[basename,'.eps']));
+    %calculate viewing vector
+    vv=cross(a*[1;0;0],a*[0;1;0])
+    az=atan2(vv(1),vv(2))*180/pi
+    el=90-acos(vv(3)./norm(vv))*180/pi
+    view(az,el)
     figure(2);
     clf
     %sample number
