@@ -39,7 +39,7 @@ function [flips,stat,stat_index]=tCalTstMSP_all(com,baud,a)
     meas=zeros(size(Bs));
     boards=zeros(12,length(Bs));
     
-    board_axes=[2,-3,  -2,-3,  -1,-3,  1,-3, 2,1 -1,2];
+    board_axes=[-2,-3,  2,-3,  1,-3,  -1,-3, 2,-1 -1,2];
 
     flips=cell(floor(length(Bs)/10)+1,1);
     stat=cell(floor(length(Bs)/10)+1,1);
