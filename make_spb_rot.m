@@ -16,6 +16,4 @@ function A=make_spb_rot(bx,by)
     end
     %calculate rotation matrix 
     A=[bx,by,cross(bx,by)];
-    %calculate the inverse transform (A'=A^-1 for a rotation matrix)
-    A=A';
 end
