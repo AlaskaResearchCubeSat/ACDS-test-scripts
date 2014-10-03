@@ -30,6 +30,16 @@ function offsetplot(cor,boards)
     clf;
     fprintf('\n==========================[Correction Data Offsets]==========================\n');
     
+    tablef=fopen('offsetplot-table-dat.tex','wt');
+    
+    %add vim modeline
+    fprintf(tablef,'%% vim: filetype=tex spell\n');
+    %print table start
+    fprintf(tablef,'\n\\begin{tabular}{|c|c|c|c|}\n');
+    %print line and header
+    hline(tablef);
+    fprintf(tablef,'\t\\acs{SPB}&Max Offset&Min Offset&Deviation\\\\\n');
+    
     for k=1:3
         %subplot for each axis
         sp(k)=subplot(3,1,k);
@@ -39,6 +49,9 @@ function offsetplot(cor,boards)
         plots={};
         %print out axis maximum swing
         fprintf('%s-axis:\n',axes_names{k});
+        %print table header row
+        hline(tablef);
+        fprintf(tablef,'\t\\multicolumn{4}{|c|}{\\bfseries %s-axis}\\\\\n',axes_names{k});
         for kk=1:length(boards)
             %get logical index of which board is in use
             idx=strcmp(board_names,boards{kk});
@@ -51,8 +64,14 @@ function offsetplot(cor,boards)
                     %plot error
                     plot(Tidx,offset,'Color',cm(cm_idx,:));
                     %get max and min
-                    mx=max(offset)*1e3;
-                    mn=min(offset)*1e3;
+                    mx=max(offset);
+                    mn=min(offset);
+                    %add table entry
+                    hline(tablef);
+                    fprintf(tablef,'\t%s&%.2f&%.2f&%.2f\\\\\n',board_names{idx},mx,mn,mx-mn);
+                    %convert to mGauss
+                    mx=mx*1e3;
+                    mn=mn*1e3;
                     %print max and min
                     fprintf('\t%s SPB\n\t\tMax = %.2f mGauss\n\t\tMin =%.2f mGauss\n\t\tDeveation = %.2f mGauss\n',board_names{idx},mx,mn,mx-mn);
                     cm_idx=cm_idx+1;
@@ -94,9 +113,20 @@ function offsetplot(cor,boards)
     linkaxes(sp,'xy');
     fprintf('=============================================================================\n');
     
+    %add ending hline
+    hline(tablef);
+    %end talbe
+    fprintf(tablef,'\\end{tabular}\n\n');
+    %close table file
+    fclose(tablef);
+    
     %setup figure for printing
     set(gcf,'PaperPositionMode','auto');
     
     %save plot
     fig_export('./figures/board-offsets.eps');
+end
+
+function hline(f)
+    fprintf(f,'\t\\hline\n');
 end
