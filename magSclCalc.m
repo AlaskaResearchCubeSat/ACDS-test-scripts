@@ -162,7 +162,7 @@ function [cor,erms]=magSclCalc(mag_axis,com,baud,gain,ADCgain,a)
             end
         end
         %check if port was open
-        if(~isa(com,'serial'))
+        if(exist('com','var'))
             delete(ser);
         end
     end
