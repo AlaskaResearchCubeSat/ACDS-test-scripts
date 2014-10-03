@@ -137,7 +137,7 @@ function [cor,erms]=magSclCalc(mag_axis,com,baud,gain,ADCgain,a)
         %save data
         save(savename,'-regexp','^(?!(cc|ser)$).');
         %generate plots from datafile
-        cor=magSclCalc_plot(savename);
+        [cor,erms]=magSclCalc_plot(savename);
     catch err
         if exist('ser','var')
             if strcmp(ser.Status,'open') && exist('com','var')
