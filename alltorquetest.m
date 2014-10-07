@@ -21,7 +21,6 @@ function alltorquetest(test_names)
     %get start time to calculate elapsed time
     Tstart=tic();
 
-    num=2*length(ax_names);
     %create dat directory
     quiet_mkdir(fullfile('.','dat'));
     %generate new folder name for data
@@ -30,7 +29,9 @@ function alltorquetest(test_names)
     quiet_mkdir(folder);
     %save SPB names and rotation matrix
     save(fullfile(folder,'dat.mat'),'a','test_names','spb_names');
-
+    %calculate step fraction for completion estimeate
+    sf=[1/length(test_names),1/length(ax_names),1/4];
+    
     for k=1:length(test_names)
         for ax=1:length(ax_names)
             for tq=1:4
@@ -46,10 +47,11 @@ function alltorquetest(test_names)
                 %save data
                 save(fullfile(folder,[test_names{k},ax_names{ax},int2str(tq),'-flip-pm']),'p','m');
                 %===[estimate completeion time]===
-                %calculate iteration number
-                num=num+1;
+                %iteration vector
+                %last index is incremented because it has already happened
+                iv=[k,ax,tq+1];
                 %calculate done fraction
-                df=((tq-1)*length(ax_names)+ax)/num;
+                df=sum(cumprod(sf).*(iv-1));
                 %get elapsed time
                 Te=toc(Tstart);%get remaining time
                 %calculate remaining time
@@ -72,6 +74,5 @@ function alltorquetest(test_names)
 
     %TODO: plot data
 end
-
 
 
