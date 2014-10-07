@@ -135,6 +135,8 @@ function [flips,stat,stat_index,lines]=tCalTstMSP_all(com,baud,a)
         %initialize lines
         lines=cell(1,length(Bs));
 
+        clf;
+        
         for k=1:length(Bs)
             cc.Bs=a*Bs(:,k);
             %pause to let the supply settle
@@ -218,7 +220,12 @@ function [flips,stat,stat_index,lines]=tCalTstMSP_all(com,baud,a)
                     fprintf(2,'Error : Could not parse torquer status \"%s\" for flip #%i\n',deblank(stline),mod(k,10));
                     rethrow(err);
                 end
+                line='';
+                pause(3);
             end
+            rng=1:k;
+            plot(rng,boards(:,rng));
+            drawnow;
         end
         %exit async connection
         asyncClose(ser);
