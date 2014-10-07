@@ -71,7 +71,8 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
         Tstart=tic();
         
         %acceptable error level
-        good_err=0.006;
+        %good_err=0.006;
+        good_err=0.007;
         %maximum number of retries
         max_retry=5;
         
