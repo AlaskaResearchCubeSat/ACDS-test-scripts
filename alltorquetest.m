@@ -32,8 +32,8 @@ function alltorquetest(test_names)
     save(fullfile(folder,'dat.mat'),'a','test_names','spb_names');
 
     for k=1:length(test_names)
-        for tq=1:4
-            for ax=1:length(ax_names)
+        for ax=1:length(ax_names)
+            for tq=1:4
                 %find SPB in the list of axis names
                 idx=strcmp(test_names{k},spb_names);
                 %array to set wich torquer to flip
