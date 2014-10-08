@@ -74,7 +74,7 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
         %good_err=0.006;
         good_err=0.007;
         %maximum number of retries
-        max_retry=5;
+        max_retry=15;
         
         for k=1:num
             
