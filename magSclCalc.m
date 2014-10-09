@@ -1,4 +1,4 @@
-function [cor,erms]=magSclCalc(mag_axis,com,baud,gain,ADCgain,a)
+function [cor,erms]=magSclCalc(mag_axis,com,baud,gain,ADCgain,a,Bs,Tf)
     %calculate magnetometer scaling and correction factors using the
     %Helmholtz cage
     if(~exist('mag_axis','var') || isempty(mag_axis))
@@ -27,6 +27,16 @@ function [cor,erms]=magSclCalc(mag_axis,com,baud,gain,ADCgain,a)
     end
     if (~exist('ADCgain','var') || isempty(ADCgain))
         ADCgain=64;
+    end
+    if(~exist('Bs','var') || isempty(Bs))
+        %set default field pattern
+        
+        theta=linspace(0,8*pi,500);
+        Bs=1/30*[theta.*sin(theta);theta.*cos(theta);0*theta];
+    end
+    if(~exist('Tf','var') || isempty(Tf))
+        %default wait time for field settling
+        Tf=0.1;
     end
     show_meas=true;
     try
@@ -85,11 +95,6 @@ function [cor,erms]=magSclCalc(mag_axis,com,baud,gain,ADCgain,a)
         
         magScale=1/(65535*1e-3*gain*ADCgain);
         
-        %theta=linspace(0,2*pi,60);
-        %Bs=0.5*[sin(theta);cos(theta);0*theta];
-        
-        theta=linspace(0,8*pi,500);
-        Bs=1/30*[theta.*sin(theta);theta.*cos(theta);0*theta];
         
         %allocate for sensor
         sensor=zeros(size(Bs));
@@ -105,7 +110,7 @@ function [cor,erms]=magSclCalc(mag_axis,com,baud,gain,ADCgain,a)
         for k=1:length(Bs)
             cc.Bs=a*Bs(:,k);
             %pause to let the supply settle
-            pause(0.1);
+            pause(Tf);
             %tell prototype to take a single measurment
             fprintf(ser,sprintf('mag single %s',mag_axis));
             %make measurment using sensor

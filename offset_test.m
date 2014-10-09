@@ -22,6 +22,10 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
     if (~exist('a','var'))
         a=[];
     end
+        
+    %use fewer field points so it dosn't take so darn long
+    theta=linspace(0,8*pi,100);
+    Bs=1/30*[theta.*sin(theta);theta.*cos(theta);0*theta];
     %current number of retries
     retry=0;
     try
@@ -99,7 +103,7 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
             %many failed tests
             while(erms>good_err)
                 %run a calibration
-                [p(k,:),erms]=magSclCalc(mag_axis,ser,baud,gain,ADCgain,a);
+                [p(k,:),erms]=magSclCalc(mag_axis,ser,baud,gain,ADCgain,a,Bs,0.5);
 
                 %check error for problems
                 if(erms>good_err)
@@ -136,7 +140,7 @@ function [p,m] = offset_test(mag_axis,com,baud,torquer,gain,ADCgain,a)
             %many failed tests
             while(erms>good_err)
                 %run a calibration
-                [m(k,:),erms]=magSclCalc(mag_axis,ser,baud,gain,ADCgain,a);
+                [m(k,:),erms]=magSclCalc(mag_axis,ser,baud,gain,ADCgain,a,Bs,0.5);
 
                 %check error for problems
                 if(erms>good_err)
