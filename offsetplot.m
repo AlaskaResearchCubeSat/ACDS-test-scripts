@@ -139,7 +139,7 @@ function offsetplot(cor,boards)
     set(gcf,'PaperPositionMode','auto');
     
     %save plot
-    fig_export('./figures/board-offsets.eps');
+    fig_export('./figures/board-offsets.pdf');
 end
 
 function hline(f)

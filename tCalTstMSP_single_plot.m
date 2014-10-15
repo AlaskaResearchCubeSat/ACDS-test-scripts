@@ -39,7 +39,7 @@ function tCalTstMSP_single_plot(savefile)
     legend('Location','NorthEastOutside');
     axis('square');
     axis('equal');
-    fig_export('Z:\ADCS\figures\torqueCalTst.eps');
+    fig_export('Z:\ADCS\figures\torqueCalTst.pdf');
     figure(2);
     clf
     %sample number
@@ -58,7 +58,7 @@ function tCalTstMSP_single_plot(savefile)
     ylabel('Error [Gauss]');
 
     %save plot
-    fig_export('Z:\ADCS\figures\torqueCalTst-err.eps');
+    fig_export('Z:\ADCS\figures\torqueCalTst-err.pdf');
     %create new figure and add torquer status subplot
     figure(3);
     clf
@@ -105,5 +105,5 @@ function tCalTstMSP_single_plot(savefile)
     %link subplots x-axis
     linkaxes([s1,s2],'x');
     %save plot
-    fig_export(fullfile('.','figures',[basename,'-err-flips.eps']));
+    fig_export(fullfile('.','figures',[basename,'-err-flips.pdf']));
 end

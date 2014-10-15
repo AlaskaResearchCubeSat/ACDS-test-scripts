@@ -68,5 +68,5 @@ function [cor,erms]=magSclCalc_plot(savefile)
     axis('square');
     axis('equal');
     %save plot
-    fig_export(fullfile('.','figures',[basename,'.eps']));
+    fig_export(fullfile('.','figures',[basename,'.pdf']));
 end

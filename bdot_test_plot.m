@@ -42,5 +42,5 @@ function bdot_test_plot(savefile)
     legend('X','Y','Z');
 
     %save plot
-    fig_export(fullfile('.','figures',[basename,'.eps']));
+    fig_export(fullfile('.','figures',[basename,'.pdf']));
 end

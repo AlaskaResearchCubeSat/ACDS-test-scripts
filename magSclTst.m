@@ -142,7 +142,7 @@ function dat=magSclTst(cor,mag_axis,com,baud,gain,ADCgain)
         axis('equal');
         
         %save plot
-        fig_export('Z:\ADCS\figures\cor-tst.eps');
+        fig_export('Z:\ADCS\figures\cor-tst.pdf');
         %create a new figure
         figure(2);
         clf
@@ -167,7 +167,7 @@ function dat=magSclTst(cor,mag_axis,com,baud,gain,ADCgain)
         xlabel('Sample');
         ylabel('Error [Gauss]');
         %save plot
-        fig_export('Z:\ADCS\figures\cor-tst-err.eps');
+        fig_export('Z:\ADCS\figures\cor-tst-err.pdf');
     catch err
         if exist('ser','var')
             if strcmp(ser.Status,'open')

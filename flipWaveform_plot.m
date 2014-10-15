@@ -27,5 +27,5 @@ function flipWaveform_plot(savefile)
     %set x-axis limits
     set(gca,'Xlim',1e3*dat(1,idx([1,end])));
     %save plot
-    fig_export(fullfile('.','figures',[basename,'.eps']));
+    fig_export(fullfile('.','figures',[basename,'.pdf']));
 end

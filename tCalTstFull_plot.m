@@ -67,7 +67,7 @@ function tCalTstFull_plot(savefile)
     %set new limits to both axes
     axis([-lim lim -lim lim]);
     %export figure
-    fig_export(fullfile('.','figures',[basename,'.eps']));
+    fig_export(fullfile('.','figures',[basename,'.pdf']));
     figure(2);
     clf
     %sample number
@@ -86,7 +86,7 @@ function tCalTstFull_plot(savefile)
     ylabel('Error [Gauss]');
     
     %save plot
-    fig_export(fullfile('.','figures',[basename,'-err.eps']));
+    fig_export(fullfile('.','figures',[basename,'-err.pdf']));
     %create new figure and add torquer status subplot
     figure(3);
     clf
@@ -133,5 +133,5 @@ function tCalTstFull_plot(savefile)
     %link subplots x-axis
     linkaxes([s1,s2],'x');
     %save plot
-    fig_export(fullfile('.','figures',[basename,'-flips.eps']));
+    fig_export(fullfile('.','figures',[basename,'-flips.pdf']));
 end

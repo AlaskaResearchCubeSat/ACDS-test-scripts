@@ -77,7 +77,7 @@ function tqOffsetPlot(SPB,folder)
     ylabel('Field offset variation [Gauss]');
 
     %save plot
-    fig_export(fullfile('.','figures',[basename,SPB,'-' ax1_name '.eps']));
+    fig_export(fullfile('.','figures',[basename,SPB,'-' ax1_name '.pdf']));
 
     figure(2);
     clf;
@@ -87,7 +87,7 @@ function tqOffsetPlot(SPB,folder)
 
 
     %save plot
-    fig_export(fullfile('.','figures',[basename,SPB,'-' ax2_name '.eps']));
+    fig_export(fullfile('.','figures',[basename,SPB,'-' ax2_name '.pdf']));
 
     figure(3);
     clf;
@@ -95,6 +95,6 @@ function tqOffsetPlot(SPB,folder)
     set(gca,'XtickLabel',names);
     ylabel('Torquer Flip Offset [Gauss]');
     %save plot
-    fig_export(fullfile('.','figures',[basename,SPB,'-values.eps']));
+    fig_export(fullfile('.','figures',[basename,SPB,'-values.pdf']));
 
 end

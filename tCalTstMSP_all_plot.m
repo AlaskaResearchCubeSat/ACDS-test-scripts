@@ -45,7 +45,7 @@ function tCalTstMSP_all_plot(savefile)
     legend('Location','NorthEastOutside');
     axis('square');
     axis('equal');
-    fig_export(fullfile('.','figures',[basename,'.eps']));
+    fig_export(fullfile('.','figures',[basename,'.pdf']));
     %calculate viewing vector
     vv=cross(a*[1;0;0],a*[0;1;0])
     az=atan2(vv(1),vv(2))*180/pi
@@ -69,7 +69,7 @@ function tCalTstMSP_all_plot(savefile)
     ylabel('Error [Gauss]');
 
     %save plot
-    fig_export(fullfile('.','figures',[basename,'-err.eps']));
+    fig_export(fullfile('.','figures',[basename,'-err.pdf']));
     %create new figure and add torquer status subplot
     figure(3);
     clf
@@ -116,7 +116,7 @@ function tCalTstMSP_all_plot(savefile)
     %link subplots x-axis
     linkaxes([s1,s2],'x');
     %save plot
-    fig_export(fullfile('.','figures',[basename,'-err-flips.eps']));
+    fig_export(fullfile('.','figures',[basename,'-err-flips.pdf']));
     %plot data from all boards
     figure(4);
     clf;
@@ -162,5 +162,5 @@ function tCalTstMSP_all_plot(savefile)
         ylabel(sprintf('%s-axis Error [Gauss]',axes_names{k}));
     end
 
-    fig_export(fullfile('.','figures',[basename,'-err-axes.eps']));
+    fig_export(fullfile('.','figures',[basename,'-err-axes.pdf']));
 end

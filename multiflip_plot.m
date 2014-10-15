@@ -39,7 +39,7 @@ function multiflip_plot(savefile)
     xlabel('Flip number');
     ylabel('%of final value');
     set(gca,'Xlim',[0 length(dat)]);
-    fig_export(fulfile('.','figures',[basename,'.eps']));
+    fig_export(fulfile('.','figures',[basename,'.pdf']));
 
     figure
 
@@ -63,5 +63,5 @@ function multiflip_plot(savefile)
     hold('off');
     ylabel('Magnetic Field [Gauss]');
     xlabel('Time [msec]')
-    fig_export(fulfile('.','figures',[basename,'-waveforms.eps']));
+    fig_export(fulfile('.','figures',[basename,'-waveforms.pdf']));
 end
