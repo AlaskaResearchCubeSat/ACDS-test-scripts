@@ -1,4 +1,18 @@
 function offsetplot(cor,boards)
+    %if no arguments given then read from file
+    if(nargin==0)
+        %generate file name
+        fname=fullfile('dat','cor.mat');
+        %print filename
+        fprintf('no arguments given, reading data from "%s"\n',fname);
+        %load file
+        s=load(fname,'cor','store_axis');
+        %set values
+        cor=s.cor;
+        boards=s.store_axis;
+        %clear unused vars
+        clear s fname
+    end
     %name of axes for plots and printouts    
     axes_names={'X','Y','Z'};   
     %name of SPB boards
