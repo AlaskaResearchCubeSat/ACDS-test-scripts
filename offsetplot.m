@@ -107,14 +107,15 @@ function offsetplot(cor,boards)
             allp=get(sp,'Position');
             p(4)=p(4)+streach;
             p(2)=2*allp{2}(2)-allp{1}(2);
-            set(gca,'XTickLabel',lables);
+            set(gca,'XTickLabel',lables,'FontName','FixedWidth','FontSize',10);
             xlabel('Torquer State');
             %rotate tick lables so they are visable
             %available:
             %http://www.mathworks.com/matlabcentral/fileexchange/45172-rotatexlabels
             rotateXLabels(gca,45);
-            set(gca,'FontName','FixedWidth');
-            set(gca,'FontSize',10);
+            rotlables=findall(gca,'Tag','RotatedXTickLabel');
+            set(rotlables,'FontName','FixedWidth');
+            set(rotlables,'FontSize',10);
         else
             set(gca,'XTickLabel',{});
             p(2)=p(2)+shift/(3-k);
