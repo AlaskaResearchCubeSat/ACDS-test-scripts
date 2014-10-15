@@ -107,7 +107,7 @@ function offsetplot(cor,boards)
             allp=get(sp,'Position');
             p(4)=p(4)+streach;
             p(2)=2*allp{2}(2)-allp{1}(2);
-            set(gca,'XTickLabel',lables,'FontName','FixedWidth','FontSize',10);
+            set(gca,'XTickLabel',lables);
             xlabel('Torquer State');
             %rotate tick lables so they are visable
             %available:
