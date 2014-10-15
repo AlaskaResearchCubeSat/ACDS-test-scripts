@@ -14,14 +14,16 @@ function fig_export(h,file)
     end
     %recombine filename
     file=fullfile(path,[basename,ext]);
-    %set to landscape
-    %set(h,'PaperOrientation','landscape');
+    %set to points units
+    set(h,'PaperUnits','points');
+    %get pagesize
+    psize=get(h,'PaperSize');
     %rotate page size so it looks correct
-    set(h,'PaperSize',fliplr(get(h,'PaperSize')));
-    %set to normalized units
-    set(h,'PaperUnits','normalized');
+    psize=fliplr(psize);
+    %set new size
+    set(h,'PaperSize',psize);
     %set to fill page
-    set(h,'PaperPosition', [0 0 1 1]);
+    set(h,'PaperPosition', [0 0 psize]);
     %generate print
     print(h,'-painters','-dpdf','-r600',file);
 end
