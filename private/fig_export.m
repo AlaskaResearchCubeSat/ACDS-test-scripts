@@ -18,8 +18,8 @@ function fig_export(h,file)
     set(h,'PaperUnits','points');
     %get pagesize
     psize=get(h,'PaperSize');
-    %rotate page size so it looks correct
-    psize=fliplr(psize);
+    %put page size in landscape order
+    psize=sort(psize,1,'descend');
     %set new size
     set(h,'PaperSize',psize);
     %set to fill page
