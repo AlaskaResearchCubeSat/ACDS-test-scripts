@@ -31,8 +31,8 @@ function tqOffsetPlot(SPB,folder)
     %get SPB board index
     board_idx=strcmp(spb_names,SPB);
     %get vector for which axis was measured
-    ax1=abs(a{board_idx}^-1*[1;0;0])==1;
-    ax2=abs(a{board_idx}^-1*[0;1;0])==1;
+    ax1=abs(a{board_idx}*[1;0;0])==1;
+    ax2=abs(a{board_idx}*[0;1;0])==1;
     %get name of the measured axis
     ax1_name=ax_names{ax1};
     ax2_name=ax_names{ax2};
