@@ -84,22 +84,28 @@ function [cor,erms]=tCal(mag_axis,tq_axis,com,baud,gain,ADCgain,a)
         %close async connection
         asyncClose(ser);
         
-         %set ADC gain for magnetomitor
-        command(ser,'gain %i',ADCgain);
-        %get output line
-        gs=fgetl(ser);
-        %make sure that gain is correct
-        if(ADCgain~=sscanf(gs,'ADC gain = %i'))
-            error('Failed to set ADC gain to %i',ADCgain);
-        end
-        if ~waitReady(ser,10)
-            error('Could not communicate with prototype. Check connections');
+        %check if ADC gain is NaN and skip setting it
+        if(isnan(ADCgain))
+             %set ADC gain for magnetomitor
+            command(ser,'gain %i',ADCgain);
+            %get output line
+            gs=fgetl(ser);
+            %make sure that gain is correct
+            if(ADCgain~=sscanf(gs,'ADC gain = %i'))
+                error('Failed to set ADC gain to %i',ADCgain);
+            end
+            if ~waitReady(ser,10)
+                error('Could not communicate with prototype. Check connections');
+            end
+        else
+            ADCgain=1;
         end
         
         %set to machine readable opperation
         %command(ser,'output machine');
         %connect to ACDS board
         asyncOpen(ser,'ACDS');
+
         %only show error messages
         command(ser,'log error');
         if ~waitReady(ser,30)
