@@ -2,7 +2,7 @@
 fprintf('Make sure sensor is in the helmholtz cage and the Sattelite is removed.\nPress Enter when ready');
 pause;
 %calibrate Helmholtz cage
-printf('Calibrating Helmholtz cage\n');
+fprintf('Calibrating Helmholtz cage\n');
 cc=cage_control();
 err=cc.calibrate()
 if err<1
