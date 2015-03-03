@@ -37,6 +37,9 @@ function cor=store_all_cal(com,baud,gain,ADCgain,store_axis)
         %warnings from confusing Matlab if they are dumped to UART
         command(ser,'log error');
         waitReady(ser);
+
+        %turn off CDH printing
+        command(ser,'cdhp','off');
         
         %connect to ACDS
         asyncOpen(ser,'ACDS');
