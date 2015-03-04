@@ -40,6 +40,7 @@ function cor=store_all_cal(com,baud,gain,ADCgain,store_axis)
 
         %turn off CDH printing
         command(ser,'cdhp','off');
+        waitReady(ser);
         
         %connect to ACDS
         asyncOpen(ser,'ACDS');
